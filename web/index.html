@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>欢迎来到我们的网站 - 登录/注册</title>
+    <style>
+        /* --- 全局样式 --- */
+        :root {
+            --primary-color: #3a7bd5;
+            --secondary-color: #3a6073;
+            --white-color: #fff;
+            --gray-color: #f0f0f0;
+            --dark-gray-color: #aaa;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- 容器样式 --- */
+        .container {
+            position: relative;
+            width: 800px;
+            max-width: 90%;
+            height: 500px;
+            background: var(--white-color);
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+            overflow: hidden; /* 隐藏动画溢出部分 */
+        }
+        
+        /* --- 表单容器 --- */
+        .form-container {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            transition: all 0.6s ease-in-out;
+        }
+
+        .sign-in-container {
+            left: 0;
+            width: 50%;
+            z-index: 2;
+        }
+
+        .sign-up-container {
+            left: 0;
+            width: 50%;
+            opacity: 0;
+            z-index: 1;
+        }
+
+        /* 当切换到注册时，移动登录表单并显示注册表单 */
+        .container.right-panel-active .sign-in-container {
+            transform: translateX(100%);
+        }
+
+        .container.right-panel-active .sign-up-container {
+            transform: translateX(100%);
+            opacity: 1;
+            z-index: 5;
+            animation: show 0.6s;
+        }
+
+        @keyframes show {
+            0%, 49.99% {
+                opacity: 0;
+                z-index: 1;
+            }
+            50%, 100% {
+                opacity: 1;
+                z-index: 5;
+            }
+        }
+        
+        /* --- 表单元素 --- */
+        form {
+            background: var(--white-color);
+            display: flex;
+            flex-direction: column;
+            padding: 0 50px;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        h1 {
+            font-weight: bold;
+            margin: 0 0 20px;
+            color: #333;
+        }
+
+        .input-group {
+            position: relative;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            background: var(--gray-color);
+            border: none;
+            border-radius: 8px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        button {
+            border-radius: 20px;
+            border: 1px solid var(--primary-color);
+            background: var(--primary-color);
+            color: var(--white-color);
+            font-size: 14px;
+            font-weight: bold;
+            padding: 12px 45px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: transform 80ms ease-in;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        /* --- 动画覆盖层 --- */
+        .overlay-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            transition: transform 0.6s ease-in-out;
+            z-index: 100;
+        }
+
+        .container.right-panel-active .overlay-container {
+            transform: translateX(-100%);
+        }
+
+        .overlay {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: var(--white-color);
+            position: relative;
+            left: -100%;
+            height: 100%;
+            width: 200%;
+            transform: translateX(0);
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .container.right-panel-active .overlay {
+            transform: translateX(50%);
+        }
+
+        .overlay-panel {
+            position: absolute;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0 40px;
+            height: 100%;
+            width: 50%;
+            text-align: center;
+            transform: translateX(0);
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .overlay-left {
+            transform: translateX(-20%);
+        }
+
+        .container.right-panel-active .overlay-left {
+            transform: translateX(0);
+        }
+
+        .overlay-right {
+            right: 0;
+            transform: translateX(0);
+        }
+
+        .container.right-panel-active .overlay-right {
+            transform: translateX(20%);
+        }
+
+        .overlay-panel p {
+            font-size: 14px;
+            font-weight: 300;
+            line-height: 20px;
+            letter-spacing: 0.5px;
+            margin: 20px 0 30px;
+        }
+
+        .ghost {
+            background: transparent;
+            border-color: var(--white-color);
+        }
+        
+        /* 消息提示 */
+        #message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 200;
+            font-size: 16px;
+        }
+        #message.show {
+            opacity: 1;
+        }
+        #message.success {
+            background-color: var(--success-color);
+        }
+        #message.error {
+            background-color: var(--error-color);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                height: auto;
+                min-height: 550px;
+                border-radius: 10px;
+                display: flex;
+                flex-direction: column;
+            }
+            .form-container {
+                position: static;
+                width: 100%;
+                height: auto;
+                transition: none;
+            }
+            .sign-in-container, .sign-up-container {
+                width: 100%;
+                left: 0;
+                transform: none !important;
+                padding: 30px 0;
+            }
+             .sign-up-container {
+                display: none; /* 默认隐藏注册表单 */
+            }
+            .overlay-container {
+                display: none; /* 移动端不显示覆盖层动画 */
+            }
+            form {
+                padding: 0 25px;
+            }
+            /* 显示一个简单的切换按钮 */
+            .mobile-switch {
+                display: block;
+                margin-top: 15px;
+                color: var(--primary-color);
+                cursor: pointer;
+                font-size: 14px;
+                text-decoration: underline;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-switch {
+                display: none;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container" id="container">
+        <!-- 注册表单 -->
+        <div class="form-container sign-up-container">
+            <form id="signUpForm">
+                <h1>创建账户</h1>
+                <div class="input-group">
+                    <input type="email" id="signUpEmail" placeholder="邮箱" required />
+                </div>
+                <div class="input-group">
+                    <input type="password" id="signUpPassword" placeholder="密码" required />
+                </div>
+                <div class="input-group">
+                    <input type="text" id="signUpName" placeholder="邀请码" required />
+                </div>
+                <button type="submit">注册</button>
+                 <!-- 移动端切换链接 -->
+                <a href="#" class="mobile-switch" id="signInMobile">已有账户？去登录</a>
+            </form>
+        </div>
+        
+        <!-- 登录表单 -->
+        <div class="form-container sign-in-container">
+            <form id="signInForm">
+                <h1>登录</h1>
+                <div class="input-group">
+                    <input type="email" id="signInEmail" placeholder="邮箱" required />
+                </div>
+                <div class="input-group">
+                    <input type="password" id="signInPassword" placeholder="密码" required />
+                </div>
+                <button type="submit">登录</button>
+                <!-- 移动端切换链接 -->
+                <a href="#" class="mobile-switch" id="signUpMobile">没有账户？去注册</a>
+            </form>
+        </div>
+
+        <!-- 动画覆盖层 -->
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel overlay-left">
+                    <h1>欢迎回来！</h1>
+                    <p>请使用您的个人信息登录，开始您的旅程</p>
+                    <button class="ghost" id="signIn">登录</button>
+                </div>
+                <div class="overlay-panel overlay-right">
+                    <h1>你好，朋友！</h1>
+                    <p>输入您的个人信息，和我们一起开始旅程吧</p>
+                    <button class="ghost" id="signUp">注册</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 全局消息提示框 -->
+    <div id="message"></div>
+
+    <script>
+        // --- 切换动画逻辑 ---
+        const signUpButton = document.getElementById('signUp');
+        const signInButton = document.getElementById('signIn');
+        const signUpMobileButton = document.getElementById('signUpMobile');
+        const signInMobileButton = document.getElementById('signInMobile');
+        const container = document.getElementById('container');
+        const signInFormDiv = document.querySelector('.sign-in-container');
+        const signUpFormDiv = document.querySelector('.sign-up-container');
+        
+        // 桌面端切换
+        if (signUpButton && signInButton) {
+            signUpButton.addEventListener('click', () => {
+                container.classList.add('right-panel-active');
+            });
+
+            signInButton.addEventListener('click', () => {
+                container.classList.remove('right-panel-active');
+            });
+        }
+
+        // 移动端切换
+        if (signUpMobileButton && signInMobileButton) {
+            signUpMobileButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                signInFormDiv.style.display = 'none';
+                signUpFormDiv.style.display = 'flex';
+            });
+            signInMobileButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                signUpFormDiv.style.display = 'none';
+                signInFormDiv.style.display = 'flex';
+            });
+        }
+        
+
+        // --- 后端交互逻辑 ---
+
+        // 获取表单元素
+        const signInForm = document.getElementById('signInForm');
+        const signUpForm = document.getElementById('signUpForm');
+
+        // 显示消息提示
+        const messageDiv = document.getElementById('message');
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `show ${type}`; // 'success' or 'error'
+            setTimeout(() => {
+                messageDiv.className = messageDiv.className.replace('show', '');
+            }, 3000); // 3秒后自动消失
+        }
+
+        // 登录表单提交事件
+        signInForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // 阻止表单默认提交行为
+            
+            const email = document.getElementById('signInEmail').value;
+            const password = document.getElementById('signInPassword').value;
+
+            // !!!重要!!! 请将下面的URL替换成你的后端登录API地址
+            const loginApiUrl = '/api/login';
+
+            try {
+                const response = await fetch(loginApiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showMessage('登录成功！正在跳转...', 'success');
+                    // 登录成功，跳转到主页
+                    setTimeout(() => {
+                        window.location.href = 'main.html'; // 跳转到主网站页面
+                    }, 1500); // 延迟1.5秒跳转，让用户看到成功提示
+                } else {
+                    // 登录失败，显示后端返回的错误信息
+                    showMessage(result.message || '登录失败，请检查邮箱或密码。', 'error');
+                }
+            } catch (error) {
+                console.error('登录请求失败:', error);
+                showMessage('无法连接到服务器，请稍后再试。', 'error');
+            }
+        });
+
+        // 注册表单提交事件
+        signUpForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('signUpEmail').value;
+            const password = document.getElementById('signUpPassword').value;
+            const name = document.getElementById('signUpName').value;
+
+            // !!!重要!!! 请将下面的URL替换成你的后端注册API地址
+            const registerApiUrl = '/api/register';
+
+            try {
+                const response = await fetch(registerApiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({email, password, name}),
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showMessage('注册成功！请登录。', 'success');
+                     // 注册成功后，自动切换到登录界面
+                    setTimeout(() => {
+                        // 模拟点击登录按钮以切换视图
+                        if (window.innerWidth > 768) {
+                           signInButton.click();
+                        } else {
+                           signInMobileButton.click();
+                        }
+                    }, 2000); // 延迟2秒
+                } else {
+                    showMessage(result.message || '注册失败，请重试。', 'error');
+                }
+            } catch (error) {
+                console.error('注册请求失败:', error);
+                showMessage('无法连接到服务器，请稍后再试。', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
