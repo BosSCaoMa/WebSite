@@ -13,44 +13,31 @@ Nginx
 
 ```
 
+# MySQL
 
+## 用户字段存储
 
-# 前端
-
-```bash
-fetch('/api/hello?...')
-   ↓
-浏览器发 HTTP 到 80
-   ↓
-Nginx 收到 /api/... 请求
-   ↓
-Nginx 转发到 9000
-   ↓
-C++ 返回
-   ↓
-Nginx 再转给浏览器
+```mysql
 ```
 
-## 浏览器到底发了什么给后端？（HTTP 报文）
 
-以这句为例：
 
-```js
-fetch(`/api/hello?name=Kim`)
+
+
+```mysql
+CREATE TABLE `sys_user` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '用户ID',
+  `username` VARCHAR(50) NOT NULL COMMENT '用户名（唯一）',
+  `email` VARCHAR(100) NOT NULL COMMENT '邮箱（唯一）',
+  `password_hash` VARCHAR(255) NOT NULL COMMENT 'bcrypt哈希值（含盐分）',
+  `password_algorithm` VARCHAR(50) NOT NULL DEFAULT 'bcrypt' COMMENT '加密算法标识',
+  `password_update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '密码最后修改时间',
+  `status` TINYINT NOT NULL DEFAULT 1 COMMENT '1-正常，0-禁用',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_username` (`username`),
+  UNIQUE KEY `idx_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
 ```
-
-浏览器会发类似这样的 HTTP 请求：
-
-```
-GET /api/hello?name=Kim HTTP/1.1
-Host: 你的域名或IP
-User-Agent: ...
-Accept: */*
-Connection: keep-alive
-
-（空行）
-（GET 没有 body）
-```
-
-你的 C++ 服务器 `read()` 到的就是这一坨文本（Nginx转发后的）。
 
