@@ -10,7 +10,6 @@
 #include <cppconn/prepared_statement.h>
 #include <cppconn/exception.h>
 
-extern std::string DB_PASSWORD;                  // 你的全局密码变量
 
 // 加密密码：返回哈希值（含盐值）
 std::string hashPassword(const std::string& password) {

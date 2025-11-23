@@ -13,7 +13,8 @@
 #define LOGIN_H
 
 #include <string>
-
+#include <functional>
+#include "MySQLProc.h"
 // 验证密码：对比输入密码与存储的哈希值
 bool verifyPassword(const std::string& inputPassword, const std::string& storedHash);
 void handleLogInRequest(const std::string& requestBody,

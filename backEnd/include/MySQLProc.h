@@ -14,7 +14,6 @@
 #include <cppconn/prepared_statement.h>
 #include <cppconn/exception.h>
 
-extern std::string DB_PASSWORD;
 struct UserInfo {
     std::string name;
     std::string email;
@@ -29,14 +28,18 @@ enum class SignUpResult {
 std::string GetInitName();
 SignUpResult GetSignUpResult(const UserInfo& userInfo);
 UserInfo QueryUserInfoByEmail(const std::string& email);
+
 class ConnectionPool {
 public:
-    ConnectionPool(const std::string& host,
-                   const std::string& user,
-                   const std::string& password,
-                   const std::string& database,
-                   int maxConnections = 10,
-                   int minConnections = 2);
+    // 获取单例实例
+    static ConnectionPool& instance();
+    // 初始化（原构造函数逻辑迁移到此）
+    static void init(const std::string& host,
+                     const std::string& user,
+                     const std::string& password,
+                     const std::string& database,
+                     int maxConnections = 10,
+                     int minConnections = 2);
 
     ~ConnectionPool();
 
@@ -49,7 +52,12 @@ public:
     // 关闭连接池
     void shutdown();
 
+    ConnectionPool(const ConnectionPool&) = delete;
+    ConnectionPool& operator=(const ConnectionPool&) = delete;
+
 private:
+    ConnectionPool() = default; // 私有构造，使用init完成初始化
+
     // 创建一个新连接并放入队列
     void createConnection();
 

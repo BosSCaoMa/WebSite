@@ -5,13 +5,6 @@
 #include <cppconn/resultset.h>
 using namespace std;
 
-std::string DB_PASSWORD;
-const std::string DB_HOST = "tcp://127.0.0.1:3306";  // 经典协议端口 3306
-const std::string DB_USER = "web_user";
-const std::string DB_NAME = "web_manager";
-
-ConnectionPool pool(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, 10, 2);
-
 std::string GetInitName()
 {
     static atomic<int> defaultName = 900001;
@@ -21,7 +14,7 @@ std::string GetInitName()
 
 SignUpResult GetSignUpResult(const UserInfo &userInfo)
 {
-    ConnectionPoolAgent dbAgent(&pool);
+    ConnectionPoolAgent dbAgent(&ConnectionPool::instance());
     try {
         // 使用预处理语句防止SQL注入
         std::unique_ptr<sql::PreparedStatement> pstmt(
@@ -53,7 +46,7 @@ SignUpResult GetSignUpResult(const UserInfo &userInfo)
 
 UserInfo QueryUserInfoByEmail(const std::string &email)
 {
-    ConnectionPoolAgent dbAgent(&pool);
+    ConnectionPoolAgent dbAgent(&ConnectionPool::instance());
     UserInfo userInfo;
 
     try {
@@ -75,34 +68,45 @@ UserInfo QueryUserInfoByEmail(const std::string &email)
     return userInfo;
 }
 
-ConnectionPool::ConnectionPool(const std::string& host,
-                               const std::string& user,
-                               const std::string& password,
-                               const std::string& database,
-                               int maxConnections,
-                               int minConnections)
-    : maxConnections_(maxConnections),
-      minConnections_(minConnections),
-      currentConnections_(0),
-      isRunning_(true),
-      host_(host),
-      user_(user),
-      password_(password),
-      database_(database) 
-{
-    driver_ = sql::mysql::get_mysql_driver_instance();
+// -------------------- 单例相关实现 --------------------
+ConnectionPool& ConnectionPool::instance() {
+    static ConnectionPool inst; // Meyers Singleton
+    return inst;
+}
 
-    // 预先创建 minConnections_ 个连接
-    for (int i = 0; i < minConnections_; ++i) {
+void ConnectionPool::init(const std::string& host,
+                          const std::string& user,
+                          const std::string& password,
+                          const std::string& database,
+                          int maxConnections,
+                          int minConnections) {
+    ConnectionPool& inst = instance();
+    std::lock_guard<std::mutex> lock(inst.mutex_);
+    if (inst.isRunning_) {
+        // 已经初始化过，直接返回
+        return;
+    }
+    inst.maxConnections_ = maxConnections;
+    inst.minConnections_ = minConnections;
+    inst.currentConnections_ = 0;
+    inst.isRunning_ = true;
+    inst.host_ = host;
+    inst.user_ = user;
+    inst.password_ = password;
+    inst.database_ = database;
+
+    inst.driver_ = sql::mysql::get_mysql_driver_instance();
+
+    for (int i = 0; i < inst.minConnections_; ++i) {
         try {
-            createConnection();
+            inst.createConnection();
         } catch (const sql::SQLException& e) {
-            std::cerr << "Failed to create initial connection: "
-                      << e.what() << ", code: " << e.getErrorCode()
-                      << std::endl;
+            LOG_ERROR("Failed to create initial connection: %s, code: %d",
+                      e.what(), e.getErrorCode());
         }
     }
 }
+// ------------------------------------------------------
 
 ConnectionPool::~ConnectionPool() {
     shutdown();
@@ -111,7 +115,6 @@ ConnectionPool::~ConnectionPool() {
 std::shared_ptr<sql::Connection> ConnectionPool::getConnection()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-
     // 如果没有空闲连接且可以扩展连接池，尝试创建新连接
     if (connections_.empty() && canExpandPool()) {
         try {
