@@ -6,6 +6,8 @@
 #include <mutex>
 #include <atomic>
 #include <thread>
+#include <ctime>
+#include <cstring>
 
 // 日志级别
 enum LogLevel {
