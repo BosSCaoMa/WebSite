@@ -26,7 +26,7 @@ SignUpResult GetSignUpResult(const UserInfo &userInfo)
         // 使用预处理语句防止SQL注入
         std::unique_ptr<sql::PreparedStatement> pstmt(
             dbAgent->prepareStatement(
-                "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)"
+                "INSERT INTO sys_user (name, email, password_hash) VALUES (?, ?, ?)"
             )
         );
         pstmt->setString(1, userInfo.name);
@@ -49,6 +49,30 @@ SignUpResult GetSignUpResult(const UserInfo &userInfo)
         }
     }
     return SignUpResult::DbError;
+}
+
+UserInfo QueryUserInfoByEmail(const std::string &email)
+{
+    ConnectionPoolAgent dbAgent(&pool);
+    UserInfo userInfo;
+
+    try {
+        std::unique_ptr<sql::PreparedStatement> pstmt(
+            dbAgent->prepareStatement("SELECT name, email, password_hash FROM sys_user WHERE email = ?")
+        );
+        pstmt->setString(1, email);
+
+        std::unique_ptr<sql::ResultSet> resultSet(pstmt->executeQuery());
+        if (resultSet->next()) {
+            userInfo.name = resultSet->getString("name");
+            userInfo.email = resultSet->getString("email");
+            userInfo.passwordHash = resultSet->getString("password_hash");
+        }
+    } catch (sql::SQLException &e) {
+        LOG_ERROR("SQL Error: %s, Error Code: %d", e.what(), e.getErrorCode());
+    }
+
+    return userInfo;
 }
 
 ConnectionPool::ConnectionPool(const std::string& host,

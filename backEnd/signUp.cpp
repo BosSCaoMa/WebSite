@@ -4,7 +4,6 @@
 #include <bcrypt/bcrypt.h>
 #include <iostream>
 #include "MySQLProc.h"
-#include <iostream>
 #include <memory>
 #include <mysql_driver.h>
 #include <mysql_connection.h>
@@ -47,7 +46,7 @@ void handleSignUpRequest(const std::string &requestBody, std::function<void(int,
     };
     LOG_DEBUG("Received sign-up request: email=%s", email.c_str());
     
-    auto res = GetSignUpResult(email, password);
+    auto res = GetSignUpResult(userInfo);
     if (res == SignUpResult::EmailExists) {
         LOG_DEBUG("Sign-up failed: Email already exists: %s", email.c_str());
         sendResponse(409, R"({"success": false, "message": "邮箱已被注册"})");

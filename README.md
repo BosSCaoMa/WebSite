@@ -22,8 +22,6 @@ Nginx
 
 
 
-
-
 ```mysql
 CREATE TABLE `sys_user` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '用户ID',

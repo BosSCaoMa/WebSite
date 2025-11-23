@@ -28,8 +28,8 @@ enum class SignUpResult {
 
 std::string GetInitName();
 SignUpResult GetSignUpResult(const UserInfo& userInfo);
-
-0class ConnectionPool {
+UserInfo QueryUserInfoByEmail(const std::string& email);
+class ConnectionPool {
 public:
     ConnectionPool(const std::string& host,
                    const std::string& user,
