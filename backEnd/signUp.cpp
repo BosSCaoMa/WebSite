@@ -1,7 +1,7 @@
 #include "signUp.h"
 #include <json.hpp>
 #include "LogM.h"
-#include <bcrypt/bcrypt.h>
+#include <crypt.h>
 #include <iostream>
 #include "MySQLProc.h"
 #include <memory>
@@ -9,19 +9,46 @@
 #include <mysql_connection.h>
 #include <cppconn/prepared_statement.h>
 #include <cppconn/exception.h>
+#include <stdexcept>
+#include <random>
 
+static std::string generateBcryptSalt(int cost = 12) {
+    // bcrypt 的“base64”字符集：[./0-9A-Za-z]
+    static const char alphabet[] =
+        "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+    if (cost < 4)  cost = 4;
+    if (cost > 31) cost = 31;
+
+    // 前缀：$2b$<cost>$
+    char prefix[8];
+    std::snprintf(prefix, sizeof(prefix), "$2b$%02d$", cost);
+
+    std::string salt = prefix;
+    salt.reserve(salt.size() + 22);
+
+    std::random_device rd;
+    std::uniform_int_distribution<int> dist(0, sizeof(alphabet) - 2); // 去掉末尾 '\0'
+
+    // 22 个随机字符
+    for (int i = 0; i < 22; ++i) {
+        salt.push_back(alphabet[dist(rd)]);
+    }
+
+    return salt;
+}
 
 // 加密密码：返回哈希值（含盐值）
 std::string hashPassword(const std::string& password) {
-    // 生成盐值（bcrypt自动生成，参数4-31，值越大越安全但越慢）
-    char salt[BCRYPT_HASHSIZE];
-    bcrypt_gensalt(12, salt); // 12是cost因子，推荐10-14
+    std::string salt = generateBcryptSalt();   // 例如: $2b$12$xxxxxxxxxxxxxxxxxxxxxx
 
-    // 哈希密码（结果包含盐值，无需单独存储盐）
-    char hash[BCRYPT_HASHSIZE];
-    bcrypt_hashpw(password.c_str(), salt, hash);
+    const char* out = crypt(password.c_str(), salt.c_str());
+    if (!out) {
+        throw std::runtime_error("crypt() failed when hashing password");
+    }
 
-    return std::string(hash);
+    // 形如: $2b$12$...22字节盐...31字节hash...
+    return std::string(out);
 }
 
 void handleSignUpRequest(const std::string &requestBody, std::function<void(int, const std::string &)> sendResponse)

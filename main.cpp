@@ -10,10 +10,11 @@ int main()
 {
     LOG_INFO("Application started");
 
-    // 使用全局 extern DB_PASSWORD（不要重复定义）
+    
     const std::string DB_HOST = "tcp://127.0.0.1:3306";  // 经典协议端口 3306
     const std::string DB_USER = "web_user";
     const std::string DB_NAME = "web_manager";
+    string DB_PASSWORD;
     cout << "press your mysql password:" << endl;
     getline(cin, DB_PASSWORD);
     LOG_INFO("MySQL password set");

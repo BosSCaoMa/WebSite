@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cppconn/statement.h>
 #include <cppconn/resultset.h>
+#include "LogM.h"
 using namespace std;
 
 std::string GetInitName()
@@ -19,7 +20,7 @@ SignUpResult GetSignUpResult(const UserInfo &userInfo)
         // 使用预处理语句防止SQL注入
         std::unique_ptr<sql::PreparedStatement> pstmt(
             dbAgent->prepareStatement(
-                "INSERT INTO sys_user (name, email, password_hash) VALUES (?, ?, ?)"
+                "INSERT INTO sys_user (username, email, password_hash) VALUES (?, ?, ?)"
             )
         );
         pstmt->setString(1, userInfo.name);

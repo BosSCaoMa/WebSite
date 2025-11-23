@@ -1,11 +1,14 @@
 #include "logIn.h"
-#include <bcrypt/bcrypt.h>
-#include <nlohmann/json.hpp>
+#include <crypt.h>
+#include <json.hpp>
 #include "MySQLProc.h"
 // 验证密码：对比输入密码与存储的哈希值
 bool verifyPassword(const std::string& inputPassword, const std::string& storedHash) {
-    // bcrypt_checkpw会自动从storedHash中提取盐值计算
-    return bcrypt_checkpw(inputPassword.c_str(), storedHash.c_str()) == 0;
+    // crypt 会从 storedHash 里读出算法 / cost / 盐，然后再算一次
+    const char* out = crypt(inputPassword.c_str(), storedHash.c_str());
+    if (!out) return false;
+
+    return storedHash == std::string(out);
 }
 
 void handleLogInRequest(const std::string &requestBody, std::function<void(int, const std::string &)> sendResponse)

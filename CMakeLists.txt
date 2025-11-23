@@ -69,14 +69,12 @@ if (UNIX)
     endif()
 
     # bcrypt 库（若使用系统 libbcrypt）
-    find_library(BCRYPT_LIB bcrypt)
-    if (BCRYPT_LIB)
-        message(STATUS "Found bcrypt: ${BCRYPT_LIB}")
-        target_link_libraries(WebSite PRIVATE ${BCRYPT_LIB})
-    else()
-        message(WARNING "bcrypt library not found. Install libbcrypt-dev or adjust include/link settings.")
-    endif()
+    target_link_libraries(WebSite PRIVATE crypt)
 
     # 链接线程库
     target_link_libraries(WebSite PRIVATE Threads::Threads)
+    # 链接lib
+    target_link_libraries(WebSite PRIVATE
+        ${PROJECT_SOURCE_DIR}/lib/libLogM.so
+    )
 endif()

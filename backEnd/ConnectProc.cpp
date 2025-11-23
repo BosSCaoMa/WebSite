@@ -1,8 +1,9 @@
 #include "ConnectProc.h"
 #include <cstring>
-#include <nlohmann/json.hpp>
+#include <json.hpp>
 #include "logIn.h"
 #include "signUp.h"
+#include "LogM.h"
 using nlohmann::json;
 bool parse_http_request(const std::string& raw, HttpRequest& req)
 {
