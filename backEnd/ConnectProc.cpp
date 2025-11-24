@@ -4,6 +4,7 @@
 #include "logIn.h"
 #include "signUp.h"
 #include "LogM.h"
+#include <sstream> // 新增: 解析请求行需要
 
 using nlohmann::json;
 bool parse_http_request(const std::string& raw, HttpRequest& req)
@@ -31,6 +32,24 @@ bool parse_http_request(const std::string& raw, HttpRequest& req)
         std::string key = trim(line.substr(0, colon));
         std::string value = trim(line.substr(colon + 1));
         req.headers[key] = value;
+    }
+    // 新增: 解析 token
+    // 优先使用 Authorization: Bearer <token> 形式；否则尝试 Token: <token>
+    auto authIt = req.headers.find("Authorization");
+    if (authIt != req.headers.end()) {
+        std::string authVal = trim(authIt->second);
+        const std::string bearerPrefix = "Bearer ";
+        if (authVal.rfind(bearerPrefix, 0) == 0) {
+            req.token = trim(authVal.substr(bearerPrefix.size()));
+        } else {
+            // 若无 Bearer 前缀，直接全部当作 token
+            req.token = authVal;
+        }
+    } else {
+        auto tokIt = req.headers.find("Token");
+        if (tokIt != req.headers.end()) {
+            req.token = trim(tokIt->second);
+        }
     }
     auto it = req.headers.find("Content-Length");
     if (it != req.headers.end()) {
@@ -62,6 +81,10 @@ void handle_client(int client_fd)
         return;
     }
     LOG_DEBUG("Received HTTP request: %s %s", req.method.c_str(), req.path.c_str());
+    // 可以调试输出 token
+    if (!req.token.empty()) {
+        LOG_DEBUG("Token: %s", req.token.c_str());
+    }
 
     // 构造回调，捕获client_fd
     auto sendResponse = [client_fd](int statusCode, const std::string& body) {
@@ -94,6 +117,13 @@ void handle_client(int client_fd)
             sendResponse(400, std::string("{\"success\": false, \"message\": \"JSON parse error: ") + e.what() + "\"}");
             return;
         }
+    } else if (req.method == "POST" && req.path == "/api/logout") {
+        if (req.token.empty()) {
+            sendResponse(401, R"({"success": false, "message": "缺少或无效token"})");
+            return;
+        }
+        handleLogOutRequest(req.token, sendResponse);
+        return;
     }
 
     // 其他未匹配路由，返回404

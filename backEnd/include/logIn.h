@@ -21,6 +21,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <mutex>
 
 struct Session {
     std::string token;
@@ -28,10 +29,15 @@ struct Session {
     std::string email;
 };
 extern std::unordered_map<std::string, Session> g_sessionStore; // 全局会话存储
+extern std::mutex g_sessionMutex; // 访问会话存储的互斥锁
 
 
 // 验证密码：对比输入密码与存储的哈希值
 bool verifyPassword(const std::string& inputPassword, const std::string& storedHash);
 void handleLogInRequest(const std::string& requestBody,
                         std::function<void(int, const std::string&)> sendResponse);
+// 新增: 登出与 token 验证接口
+bool validateToken(const std::string& token, std::string* emailOut = nullptr);
+void handleLogOutRequest(const std::string& token,
+                         std::function<void(int, const std::string&)> sendResponse);
 #endif // LOGIN_H

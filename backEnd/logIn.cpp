@@ -3,8 +3,11 @@
 #include <json.hpp>
 #include "MySQLProc.h"
 #include "LogM.h"
+#include <mutex>
+
 using namespace std;
 unordered_map<string, Session> g_sessionStore;
+std::mutex g_sessionMutex; // 新增互斥锁
 
 static std::string base64Encode(const std::string &in) {
     static const char *tbl = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -64,8 +67,11 @@ void SaveInSessionCB(const string& email, const string& token) {
     session.token = token;
     session.expireAt = std::chrono::steady_clock::now() + std::chrono::hours(1); // 1小时后过期
     session.email = email;
-    g_sessionStore[token] = session;
-    LOG_DEBUG("Current session store size: %zu", g_sessionStore.size());
+    {
+        std::lock_guard<std::mutex> lk(g_sessionMutex);
+        g_sessionStore[token] = session;
+        LOG_DEBUG("Current session store size: %zu", g_sessionStore.size());
+    }
 }
 
 void handleLogInRequest(const std::string &requestBody, std::function<void(int, const std::string &)> sendResponse)
@@ -97,4 +103,37 @@ void handleLogInRequest(const std::string &requestBody, std::function<void(int, 
         {"token", token}
     };
     sendResponse(200, resp.dump());
+}
+
+// 新增: token 验证
+bool validateToken(const std::string& token, std::string* emailOut) {
+    if (token.empty()) return false;
+    std::lock_guard<std::mutex> lk(g_sessionMutex);
+    auto it = g_sessionStore.find(token);
+    if (it == g_sessionStore.end()) return false;
+    // 过期检查
+    if (std::chrono::steady_clock::now() > it->second.expireAt) {
+        g_sessionStore.erase(it);
+        return false;
+    }
+    if (emailOut) *emailOut = it->second.email;
+    return true;
+}
+
+// 新增: 登出处理（删除 session）
+void handleLogOutRequest(const std::string& token, std::function<void(int, const std::string&)> sendResponse) {
+    if (token.empty()) {
+        sendResponse(400, R"({"success": false, "message": "缺少token"})");
+        return;
+    }
+    {
+        std::lock_guard<std::mutex> lk(g_sessionMutex);
+        auto it = g_sessionStore.find(token);
+        if (it == g_sessionStore.end()) {
+            sendResponse(401, R"({"success": false, "message": "无效token"})");
+            return;
+        }
+        g_sessionStore.erase(it);
+    }
+    sendResponse(200, R"({"success": true, "message": "登出成功"})");
 }

@@ -16,6 +16,7 @@ struct HttpRequest {
     std::string version;
     std::unordered_map<std::string, std::string> headers;
     std::string body;
+    std::string token;
 };
 
 static inline std::string trim(const std::string& s) {
