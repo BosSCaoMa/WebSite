@@ -65,11 +65,21 @@
     <script>
         (function() {
             const token = localStorage.getItem('authToken');
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            
             if (!token) {
                 // 确保这里的 'login.html' 或 'index.html' 是你正确的登录页文件名
                 window.location.replace('index.html');
             } else {
                 document.body.style.visibility = 'visible';
+                
+                // 如果是管理员，显示管理员入口
+                if (isAdmin) {
+                    const adminPortal = document.getElementById('admin-portal');
+                    if (adminPortal) {
+                        adminPortal.style.display = 'block';
+                    }
+                }
             }
         })();
     </script>
@@ -87,6 +97,7 @@
                     <li><a data-page="users">用户管理</a></li>
                     <li><a data-page="products">产品中心</a></li>
                     <li><a data-page="settings">系统设置</a></li>
+                    <li id="admin-portal" style="display: none;"><a href="admin.html" style="color: #ffd700; font-weight: bold;">👑 管理员控制台</a></li>
                 </ul>
             </nav>
             <div class="sidebar-footer">
@@ -173,6 +184,8 @@
         logoutButton.addEventListener('click', () => {
             const token = localStorage.getItem('authToken');
             localStorage.removeItem('authToken');
+            localStorage.removeItem('isAdmin');
+            localStorage.removeItem('userRole');
             
             // (可选) 通知后端 token 已失效
             if(token) {

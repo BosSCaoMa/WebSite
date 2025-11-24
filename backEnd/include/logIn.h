@@ -27,6 +27,7 @@ struct Session {
     std::string token;
     std::chrono::steady_clock::time_point expireAt;
     std::string email;
+    UserRole role;
 };
 extern std::unordered_map<std::string, Session> g_sessionStore; // 全局会话存储
 extern std::mutex g_sessionMutex; // 访问会话存储的互斥锁
@@ -37,7 +38,7 @@ bool verifyPassword(const std::string& inputPassword, const std::string& storedH
 void handleLogInRequest(const std::string& requestBody,
                         std::function<void(int, const std::string&)> sendResponse);
 // 新增: 登出与 token 验证接口
-bool validateToken(const std::string& token, std::string* emailOut = nullptr);
+bool validateToken(const std::string& token, std::string* emailOut = nullptr, UserRole* roleOut = nullptr);
 void handleLogOutRequest(const std::string& token,
                          std::function<void(int, const std::string&)> sendResponse);
 #endif // LOGIN_H

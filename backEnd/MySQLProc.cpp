@@ -20,12 +20,13 @@ SignUpResult GetSignUpResult(const UserInfo &userInfo)
         // 使用预处理语句防止SQL注入
         std::unique_ptr<sql::PreparedStatement> pstmt(
             dbAgent->prepareStatement(
-                "INSERT INTO sys_user (username, email, password_hash) VALUES (?, ?, ?)"
+                "INSERT INTO sys_user (username, email, password_hash, role) VALUES (?, ?, ?, ?)"
             )
         );
         pstmt->setString(1, userInfo.name);
         pstmt->setString(2, userInfo.email);
         pstmt->setString(3, userInfo.passwordHash);
+        pstmt->setInt(4, static_cast<int>(userInfo.role));
 
         int affectedRows = pstmt->executeUpdate();
         if (affectedRows == 1) {
@@ -52,21 +53,45 @@ UserInfo QueryUserInfoByEmail(const std::string &email)
 
     try {
         std::unique_ptr<sql::PreparedStatement> pstmt(
-            dbAgent->prepareStatement("SELECT name, email, password_hash FROM sys_user WHERE email = ?")
+            dbAgent->prepareStatement("SELECT username, email, password_hash, role FROM sys_user WHERE email = ?")
         );
         pstmt->setString(1, email);
 
         std::unique_ptr<sql::ResultSet> resultSet(pstmt->executeQuery());
         if (resultSet->next()) {
-            userInfo.name = resultSet->getString("name");
+            userInfo.name = resultSet->getString("username");
             userInfo.email = resultSet->getString("email");
             userInfo.passwordHash = resultSet->getString("password_hash");
+            int roleValue = resultSet->getInt("role");
+            userInfo.role = static_cast<UserRole>(roleValue);
         }
     } catch (sql::SQLException &e) {
         LOG_ERROR("SQL Error: %s, Error Code: %d", e.what(), e.getErrorCode());
     }
 
     return userInfo;
+}
+
+UserRole GetUserRole(const std::string& email)
+{
+    ConnectionPoolAgent dbAgent(&ConnectionPool::instance());
+    
+    try {
+        std::unique_ptr<sql::PreparedStatement> pstmt(
+            dbAgent->prepareStatement("SELECT role FROM sys_user WHERE email = ?")
+        );
+        pstmt->setString(1, email);
+
+        std::unique_ptr<sql::ResultSet> resultSet(pstmt->executeQuery());
+        if (resultSet->next()) {
+            int roleValue = resultSet->getInt("role");
+            return static_cast<UserRole>(roleValue);
+        }
+    } catch (sql::SQLException &e) {
+        LOG_ERROR("SQL Error: %s, Error Code: %d", e.what(), e.getErrorCode());
+    }
+
+    return UserRole::User; // 默认返回普通用户角色
 }
 
 // -------------------- 单例相关实现 --------------------

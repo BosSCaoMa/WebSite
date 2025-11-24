@@ -58,15 +58,16 @@ bool verifyPassword(const std::string& inputPassword, const std::string& storedH
     return storedHash == std::string(out);
 }
 
-void SaveInSessionCB(const string& email, const string& token) {
+void SaveInSessionCB(const string& email, const string& token, UserRole role) {
     // 此处应实现将 token 存储在服务器端的会话存储中，关联到对应的 email
     // 例如，可以使用内存缓存、数据库等方式存储
     // 这里仅为示例，实际实现需根据具体需求进行
-    LOG_INFO("Saving session for email: %s with token: %s", email.c_str(), token.c_str());
+    LOG_INFO("Saving session for email: %s with token: %s, role: %d", email.c_str(), token.c_str(), static_cast<int>(role));
     Session session;
     session.token = token;
     session.expireAt = std::chrono::steady_clock::now() + std::chrono::hours(1); // 1小时后过期
     session.email = email;
+    session.role = role;
     {
         std::lock_guard<std::mutex> lk(g_sessionMutex);
         g_sessionStore[token] = session;
@@ -96,17 +97,19 @@ void handleLogInRequest(const std::string &requestBody, std::function<void(int, 
 
     // 登录成功并生成 token
     std::string token = generateToken(userInfo.email);
-    SaveInSessionCB(email, token);
+    SaveInSessionCB(email, token, userInfo.role);
     nlohmann::json resp = {
         {"success", true},
         {"message", "登录成功"},
-        {"token", token}
+        {"token", token},
+        {"role", static_cast<int>(userInfo.role)},
+        {"isAdmin", userInfo.role == UserRole::Admin}
     };
     sendResponse(200, resp.dump());
 }
 
 // 新增: token 验证
-bool validateToken(const std::string& token, std::string* emailOut) {
+bool validateToken(const std::string& token, std::string* emailOut, UserRole* roleOut) {
     if (token.empty()) return false;
     std::lock_guard<std::mutex> lk(g_sessionMutex);
     auto it = g_sessionStore.find(token);
@@ -117,6 +120,7 @@ bool validateToken(const std::string& token, std::string* emailOut) {
         return false;
     }
     if (emailOut) *emailOut = it->second.email;
+    if (roleOut) *roleOut = it->second.role;
     return true;
 }
 

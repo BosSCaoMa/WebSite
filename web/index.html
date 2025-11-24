@@ -422,12 +422,19 @@
 
 				// 关键更新: 检查后端是否返回了 token
 				if (response.ok && result.success && result.token) {
-					// 将 token 存储到 localStorage
+					// 将 token 和角色信息存储到 localStorage
 					localStorage.setItem('authToken', result.token);
+					localStorage.setItem('userRole', result.role || '0');
+					localStorage.setItem('isAdmin', result.isAdmin || 'false');
 					
 					showMessage('登录成功！正在跳转...', 'success');
 					setTimeout(() => {
-                        window.location.href = 'main.html'; // 跳转到主网站页面
+						// 根据用户角色跳转到不同页面
+						if (result.isAdmin === true || result.role === 1) {
+							window.location.href = 'admin.html'; // 管理员页面
+						} else {
+							window.location.href = 'main.html';  // 普通用户页面
+						}
 					}, 1500); // 延迟1.5秒跳转，让用户看到成功提示
 				} else {
 					showMessage(result.message || '登录失败，请检查邮箱或密码。', 'error');

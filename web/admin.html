@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统管理控制台</title>
+    <style>
+        /* --- 全局样式 --- */
+        :root {
+            --primary-color: #dc3545;
+            --secondary-color: #6f42c1;
+            --bg-color: #f8f9fa;
+            --sidebar-bg: #343a40;
+            --sidebar-text: #ffffff;
+            --sidebar-hover: #495057;
+            --white-color: #fff;
+            --border-color: #dee2e6;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: #333;
+            visibility: hidden;
+        }
+        
+        .admin-container { 
+            display: flex; 
+            min-height: 100vh; 
+        }
+
+        /* --- 管理员侧边栏 --- */
+        .admin-sidebar { 
+            width: 280px; 
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--sidebar-text); 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .admin-sidebar-header { 
+            padding: 25px 20px; 
+            text-align: center; 
+            font-size: 1.6em; 
+            font-weight: bold; 
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.1);
+        }
+        
+        .admin-nav ul { 
+            list-style: none; 
+            padding: 0; 
+            margin: 20px 0; 
+        }
+        
+        .admin-nav li { 
+            margin: 5px 15px; 
+            border-radius: 8px; 
+            overflow: hidden; 
+        }
+        
+        .admin-nav li a { 
+            display: block; 
+            padding: 15px 20px; 
+            color: var(--sidebar-text); 
+            text-decoration: none; 
+            transition: all 0.3s; 
+            font-size: 1.1em; 
+            cursor: pointer;
+            border-left: 4px solid transparent;
+        }
+        
+        .admin-nav li a:hover, .admin-nav li a.active { 
+            background-color: rgba(255,255,255,0.15); 
+            border-left-color: #fff;
+            transform: translateX(5px);
+        }
+        
+        .admin-nav li a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .sidebar-footer { 
+            margin-top: auto; 
+            padding: 20px; 
+            text-align: center; 
+        }
+        
+        #admin-logout-button { 
+            width: 100%; 
+            padding: 12px; 
+            border: none; 
+            border-radius: 8px; 
+            background: rgba(255,255,255,0.2); 
+            color: var(--white-color); 
+            cursor: pointer; 
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        
+        #admin-logout-button:hover { 
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        /* --- 管理员主内容区 --- */
+        .admin-main-content { 
+            flex-grow: 1; 
+            padding: 30px; 
+        }
+        
+        .admin-header { 
+            font-size: 2.8em; 
+            font-weight: 300; 
+            margin-bottom: 40px; 
+            border-bottom: 2px solid var(--border-color); 
+            padding-bottom: 20px;
+            color: var(--primary-color);
+        }
+        
+        /* --- 统计卡片 --- */
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 25px; 
+            margin-bottom: 40px; 
+        }
+        
+        .stat-card { 
+            background: linear-gradient(135deg, var(--white-color), #f8f9fa);
+            padding: 25px; 
+            border-radius: 15px; 
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); 
+            transition: all 0.3s;
+            border-left: 5px solid var(--primary-color);
+        }
+        
+        .stat-card:hover { 
+            transform: translateY(-8px); 
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15); 
+        }
+        
+        .stat-card h3 { 
+            margin: 0 0 15px 0; 
+            color: var(--secondary-color);
+            font-size: 1.2em;
+        }
+        
+        .stat-number { 
+            font-size: 2.5em; 
+            font-weight: bold; 
+            color: var(--primary-color); 
+            margin: 10px 0;
+        }
+        
+        .stat-description { 
+            color: #6c757d; 
+            font-size: 0.9em;
+        }
+
+        /* --- 管理功能区 --- */
+        .management-section { 
+            background-color: var(--white-color); 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); 
+            margin-bottom: 30px;
+        }
+        
+        .section-title { 
+            font-size: 1.8em; 
+            margin-bottom: 25px; 
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        
+        .action-buttons { 
+            display: flex; 
+            gap: 15px; 
+            flex-wrap: wrap; 
+        }
+        
+        .admin-btn { 
+            padding: 12px 25px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 1em;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary { 
+            background: linear-gradient(135deg, var(--primary-color), #e74c5c); 
+            color: white; 
+        }
+        
+        .btn-success { 
+            background: linear-gradient(135deg, var(--success-color), #32d98f); 
+            color: white; 
+        }
+        
+        .btn-warning { 
+            background: linear-gradient(135deg, var(--warning-color), #f39c12); 
+            color: white; 
+        }
+        
+        .btn-info { 
+            background: linear-gradient(135deg, var(--info-color), #5bc0de); 
+            color: white; 
+        }
+        
+        .admin-btn:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); 
+        }
+
+        /* --- 用户管理表格 --- */
+        .user-table-container {
+            background-color: var(--white-color);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            overflow-x: auto;
+        }
+        
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .user-table th, .user-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .user-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+        
+        .user-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .role-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        
+        .role-admin {
+            background-color: #ffe6e6;
+            color: var(--primary-color);
+        }
+        
+        .role-user {
+            background-color: #e6f3ff;
+            color: var(--info-color);
+        }
+
+        /* --- 页面内容控制 --- */
+        .page-content {
+            display: none;
+        }
+        .page-content.active {
+            display: block;
+        }
+
+        /* --- 响应式设计 --- */
+        @media (max-width: 768px) {
+            .admin-container {
+                flex-direction: column;
+            }
+            
+            .admin-sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .admin-btn {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- 管理员侧边栏 -->
+        <div class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <i style="color: #ffd700; margin-right: 10px;">👑</i>
+                系统管理控制台
+            </div>
+            <nav class="admin-nav">
+                <ul>
+                    <li><a href="#" onclick="showPage('dashboard')" class="active" id="nav-dashboard"><i>📊</i>仪表盘</a></li>
+                    <li><a href="#" onclick="showPage('users')" id="nav-users"><i>👥</i>用户管理</a></li>
+                    <li><a href="#" onclick="showPage('system')" id="nav-system"><i>⚙️</i>系统设置</a></li>
+                    <li><a href="#" onclick="showPage('logs')" id="nav-logs"><i>📋</i>系统日志</a></li>
+                    <li><a href="#" onclick="showPage('security')" id="nav-security"><i>🔒</i>安全管理</a></li>
+                    <li><a href="#" onclick="showPage('backup')" id="nav-backup"><i>💾</i>数据备份</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="admin-logout-button" onclick="adminLogout()">安全退出</button>
+            </div>
+        </div>
+
+        <!-- 管理员主内容区 -->
+        <div class="admin-main-content">
+            <!-- 仪表盘页面 -->
+            <div id="dashboard-content" class="page-content active">
+                <h1 class="admin-header">管理员仪表盘</h1>
+                
+                <!-- 统计卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>总用户数</h3>
+                        <div class="stat-number" id="total-users">-</div>
+                        <div class="stat-description">当前注册用户总数</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>在线用户</h3>
+                        <div class="stat-number" id="online-users">-</div>
+                        <div class="stat-description">当前在线用户数量</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>管理员数量</h3>
+                        <div class="stat-number" id="admin-count">-</div>
+                        <div class="stat-description">系统管理员总数</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>今日登录</h3>
+                        <div class="stat-number" id="today-logins">-</div>
+                        <div class="stat-description">今日用户登录次数</div>
+                    </div>
+                </div>
+                
+                <!-- 快速操作 -->
+                <div class="management-section">
+                    <h2 class="section-title">快速操作</h2>
+                    <div class="action-buttons">
+                        <button class="admin-btn btn-primary" onclick="showPage('users')">👥 管理用户</button>
+                        <button class="admin-btn btn-success" onclick="createBackup()">💾 创建备份</button>
+                        <button class="admin-btn btn-warning" onclick="showPage('logs')">📋 查看日志</button>
+                        <button class="admin-btn btn-info" onclick="showPage('system')">⚙️ 系统设置</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 用户管理页面 -->
+            <div id="users-content" class="page-content">
+                <h1 class="admin-header">用户管理</h1>
+                
+                <div class="management-section">
+                    <h2 class="section-title">用户操作</h2>
+                    <div class="action-buttons">
+                        <button class="admin-btn btn-success" onclick="addNewUser()">➕ 添加用户</button>
+                        <button class="admin-btn btn-warning" onclick="exportUsers()">📤 导出用户</button>
+                        <button class="admin-btn btn-info" onclick="refreshUserList()">🔄 刷新列表</button>
+                    </div>
+                </div>
+                
+                <div class="user-table-container">
+                    <h2 class="section-title">用户列表</h2>
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>用户名</th>
+                                <th>邮箱</th>
+                                <th>角色</th>
+                                <th>注册时间</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-list-body">
+                            <!-- 用户数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 系统设置页面 -->
+            <div id="system-content" class="page-content">
+                <h1 class="admin-header">系统设置</h1>
+                
+                <div class="management-section">
+                    <h2 class="section-title">系统配置</h2>
+                    <div class="action-buttons">
+                        <button class="admin-btn btn-primary" onclick="editSystemConfig()">🔧 编辑配置</button>
+                        <button class="admin-btn btn-warning" onclick="restartSystem()">🔄 重启系统</button>
+                        <button class="admin-btn btn-info" onclick="checkSystemHealth()">🏥 系统检查</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系统日志页面 -->
+            <div id="logs-content" class="page-content">
+                <h1 class="admin-header">系统日志</h1>
+                
+                <div class="management-section">
+                    <h2 class="section-title">日志管理</h2>
+                    <div class="action-buttons">
+                        <button class="admin-btn btn-primary" onclick="viewErrorLogs()">❌ 错误日志</button>
+                        <button class="admin-btn btn-info" onclick="viewAccessLogs()">📝 访问日志</button>
+                        <button class="admin-btn btn-warning" onclick="clearLogs()">🗑️ 清理日志</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 安全管理页面 -->
+            <div id="security-content" class="page-content">
+                <h1 class="admin-header">安全管理</h1>
+                
+                <div class="management-section">
+                    <h2 class="section-title">安全操作</h2>
+                    <div class="action-buttons">
+                        <button class="admin-btn btn-primary" onclick="viewLoginAttempts()">🔐 登录记录</button>
+                        <button class="admin-btn btn-warning" onclick="blockSuspiciousIPs()">🚫 IP黑名单</button>
+                        <button class="admin-btn btn-info" onclick="updateSecurityRules()">🛡️ 安全规则</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据备份页面 -->
+            <div id="backup-content" class="page-content">
+                <h1 class="admin-header">数据备份</h1>
+                
+                <div class="management-section">
+                    <h2 class="section-title">备份管理</h2>
+                    <div class="action-buttons">
+                        <button class="admin-btn btn-success" onclick="createBackup()">💾 创建备份</button>
+                        <button class="admin-btn btn-primary" onclick="restoreBackup()">📥 恢复数据</button>
+                        <button class="admin-btn btn-warning" onclick="scheduleBackup()">⏰ 定时备份</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载完成后显示
+        window.addEventListener('load', function() {
+            // 验证管理员权限
+            const token = localStorage.getItem('authToken');
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            
+            if (!token || !isAdmin) {
+                alert('您没有访问此页面的权限！');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            document.body.style.visibility = 'visible';
+            loadDashboardData();
+        });
+
+        // 页面切换功能
+        function showPage(pageId) {
+            // 隐藏所有页面内容
+            const allPages = document.querySelectorAll('.page-content');
+            allPages.forEach(page => page.classList.remove('active'));
+            
+            // 显示指定页面
+            document.getElementById(pageId + '-content').classList.add('active');
+            
+            // 更新导航状态
+            const allNavs = document.querySelectorAll('.admin-nav a');
+            allNavs.forEach(nav => nav.classList.remove('active'));
+            document.getElementById('nav-' + pageId).classList.add('active');
+            
+            // 根据页面加载相应数据
+            if (pageId === 'users') {
+                loadUserList();
+            }
+        }
+
+        // 加载仪表盘数据
+        function loadDashboardData() {
+            // 这里应该从后端API获取真实数据
+            // 暂时使用模拟数据
+            document.getElementById('total-users').textContent = '128';
+            document.getElementById('online-users').textContent = '23';
+            document.getElementById('admin-count').textContent = '3';
+            document.getElementById('today-logins').textContent = '45';
+        }
+
+        // 加载用户列表
+        function loadUserList() {
+            // 这里应该从后端API获取用户列表
+            // 暂时使用模拟数据
+            const tbody = document.getElementById('user-list-body');
+            tbody.innerHTML = `
+                <tr>
+                    <td>admin</td>
+                    <td>admin@example.com</td>
+                    <td><span class="role-badge role-admin">管理员</span></td>
+                    <td>2024-01-01</td>
+                    <td>正常</td>
+                    <td>
+                        <button class="admin-btn btn-primary" style="padding: 5px 10px; font-size: 0.8em;">编辑</button>
+                        <button class="admin-btn btn-warning" style="padding: 5px 10px; font-size: 0.8em;">禁用</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>user001</td>
+                    <td>user001@example.com</td>
+                    <td><span class="role-badge role-user">普通用户</span></td>
+                    <td>2024-01-15</td>
+                    <td>正常</td>
+                    <td>
+                        <button class="admin-btn btn-primary" style="padding: 5px 10px; font-size: 0.8em;">编辑</button>
+                        <button class="admin-btn btn-warning" style="padding: 5px 10px; font-size: 0.8em;">禁用</button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // 管理员退出登录
+        function adminLogout() {
+            if (confirm('确定要退出管理员控制台吗？')) {
+                const token = localStorage.getItem('authToken');
+                if (token) {
+                    // 调用后端登出API
+                    fetch('/api/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        }
+                    }).finally(() => {
+                        localStorage.removeItem('authToken');
+                        localStorage.removeItem('isAdmin');
+                        window.location.href = 'index.html';
+                    });
+                } else {
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('isAdmin');
+                    window.location.href = 'index.html';
+                }
+            }
+        }
+
+        // 其他管理功能的占位函数
+        function addNewUser() { alert('添加新用户功能开发中...'); }
+        function exportUsers() { alert('导出用户功能开发中...'); }
+        function refreshUserList() { loadUserList(); }
+        function editSystemConfig() { alert('编辑系统配置功能开发中...'); }
+        function restartSystem() { alert('重启系统功能开发中...'); }
+        function checkSystemHealth() { alert('系统健康检查功能开发中...'); }
+        function viewErrorLogs() { alert('查看错误日志功能开发中...'); }
+        function viewAccessLogs() { alert('查看访问日志功能开发中...'); }
+        function clearLogs() { alert('清理日志功能开发中...'); }
+        function viewLoginAttempts() { alert('查看登录记录功能开发中...'); }
+        function blockSuspiciousIPs() { alert('IP黑名单功能开发中...'); }
+        function updateSecurityRules() { alert('更新安全规则功能开发中...'); }
+        function createBackup() { alert('创建备份功能开发中...'); }
+        function restoreBackup() { alert('恢复数据功能开发中...'); }
+        function scheduleBackup() { alert('定时备份功能开发中...'); }
+    </script>
+</body>
+</html>

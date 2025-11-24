@@ -14,10 +14,16 @@
 #include <cppconn/prepared_statement.h>
 #include <cppconn/exception.h>
 
+enum class UserRole {
+    User = 0,
+    Admin = 1
+};
+
 struct UserInfo {
     std::string name;
     std::string email;
     std::string passwordHash;
+    UserRole role = UserRole::User;
 };
 enum class SignUpResult {
     Success = 0,
@@ -28,6 +34,7 @@ enum class SignUpResult {
 std::string GetInitName();
 SignUpResult GetSignUpResult(const UserInfo& userInfo);
 UserInfo QueryUserInfoByEmail(const std::string& email);
+UserRole GetUserRole(const std::string& email);
 
 class ConnectionPool {
 public:
