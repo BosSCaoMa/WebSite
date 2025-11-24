@@ -388,55 +388,55 @@
         // --- 后端交互逻辑 ---
 
         // 获取表单元素
-        const signInForm = document.getElementById('signInForm');
-        const signUpForm = document.getElementById('signUpForm');
+		const signInForm = document.getElementById('signInForm');
+		const signUpForm = document.getElementById('signUpForm');
 
         // 显示消息提示
-        const messageDiv = document.getElementById('message');
-        function showMessage(text, type) {
-            messageDiv.textContent = text;
+		const messageDiv = document.getElementById('message');
+		function showMessage(text, type) {
+			messageDiv.textContent = text;
             messageDiv.className = `show ${type}`; // 'success' or 'error'
-            setTimeout(() => {
-                messageDiv.className = messageDiv.className.replace('show', '');
+			setTimeout(() => {
+				messageDiv.className = messageDiv.className.replace('show', '');
             }, 3000); // 3秒后自动消失
-        }
+		}
 
         // 登录表单提交事件
-        signInForm.addEventListener('submit', async (e) => {
+		signInForm.addEventListener('submit', async (e) => {
             e.preventDefault(); // 阻止表单默认提交行为
             
-            const email = document.getElementById('signInEmail').value;
-            const password = document.getElementById('signInPassword').value;
+			const email = document.getElementById('signInEmail').value;
+			const password = document.getElementById('signInPassword').value;
+			const loginApiUrl = '/api/login'; // 登录API
 
-            // !!!重要!!! 请将下面的URL替换成你的后端登录API地址
-            const loginApiUrl = '/api/login';
-
-            try {
-                const response = await fetch(loginApiUrl, {
-                    method: 'POST',
+			try {
+				const response = await fetch(loginApiUrl, {
+					method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ email, password }),
-                });
+					body: JSON.stringify({ email, password }),
+				});
 
-                const result = await response.json();
+				const result = await response.json();
 
-                if (response.ok && result.success) {
-                    showMessage('登录成功！正在跳转...', 'success');
-                    // 登录成功，跳转到主页
-                    setTimeout(() => {
+				// 关键更新: 检查后端是否返回了 token
+				if (response.ok && result.success && result.token) {
+					// 将 token 存储到 localStorage
+					localStorage.setItem('authToken', result.token);
+					
+					showMessage('登录成功！正在跳转...', 'success');
+					setTimeout(() => {
                         window.location.href = 'main.html'; // 跳转到主网站页面
-                    }, 1500); // 延迟1.5秒跳转，让用户看到成功提示
-                } else {
-                    // 登录失败，显示后端返回的错误信息
-                    showMessage(result.message || '登录失败，请检查邮箱或密码。', 'error');
-                }
-            } catch (error) {
-                console.error('登录请求失败:', error);
-                showMessage('无法连接到服务器，请稍后再试。', 'error');
-            }
-        });
+					}, 1500); // 延迟1.5秒跳转，让用户看到成功提示
+				} else {
+					showMessage(result.message || '登录失败，请检查邮箱或密码。', 'error');
+				}
+			} catch (error) {
+				console.error('登录请求失败:', error);
+				showMessage('无法连接到服务器，请稍后再试。', 'error');
+			}
+		});
 
         // 注册表单提交事件
         signUpForm.addEventListener('submit', async (e) => {
@@ -446,7 +446,7 @@
             const password = document.getElementById('signUpPassword').value;
             const name = document.getElementById('signUpName').value;
 
-            // !!!重要!!! 请将下面的URL替换成你的后端注册API地址
+            // !!!重要!!! 将下面的URL替换成后端注册API地址
             const registerApiUrl = '/api/register';
 
             try {

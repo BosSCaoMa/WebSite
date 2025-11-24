@@ -17,6 +17,7 @@ int main()
     string DB_PASSWORD;
     cout << "press your mysql password:" << endl;
     getline(cin, DB_PASSWORD);
+    cout<< "running" << endl;
     LOG_INFO("MySQL password set");
 
     // 初始化数据库连接池

@@ -15,6 +15,21 @@
 #include <string>
 #include <functional>
 #include "MySQLProc.h"
+// 新增: 生成简单的 token（时间戳 + 随机数 + email 进行 Base64）
+#include <chrono>
+#include <random>
+#include <sstream>
+#include <string>
+#include <unordered_map>
+
+struct Session {
+    std::string token;
+    std::chrono::steady_clock::time_point expireAt;
+    std::string email;
+};
+extern std::unordered_map<std::string, Session> g_sessionStore; // 全局会话存储
+
+
 // 验证密码：对比输入密码与存储的哈希值
 bool verifyPassword(const std::string& inputPassword, const std::string& storedHash);
 void handleLogInRequest(const std::string& requestBody,

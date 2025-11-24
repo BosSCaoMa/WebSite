@@ -4,6 +4,7 @@
 #include "logIn.h"
 #include "signUp.h"
 #include "LogM.h"
+
 using nlohmann::json;
 bool parse_http_request(const std::string& raw, HttpRequest& req)
 {
@@ -42,6 +43,7 @@ bool parse_http_request(const std::string& raw, HttpRequest& req)
     return true;
 }
 
+// 线程执行函数
 void handle_client(int client_fd)
 {
     std::string raw;
@@ -97,7 +99,7 @@ void handle_client(int client_fd)
     // 其他未匹配路由，返回404
     sendResponse(404, "{\"success\": false, \"message\": \"Not Found\"}");
 }
-
+// 主要运行函数
 int ProcWebConnect(int port)
 {
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
