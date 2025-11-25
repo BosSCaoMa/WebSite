@@ -5,6 +5,7 @@
 #include "signUp.h"
 #include "LogM.h"
 #include <sstream> // 新增: 解析请求行需要
+#include "business.h"
 
 using nlohmann::json;
 bool parse_http_request(const std::string& raw, HttpRequest& req)
@@ -62,6 +63,37 @@ bool parse_http_request(const std::string& raw, HttpRequest& req)
     return true;
 }
 
+// 路由分发函数
+void dispatch_request(const HttpRequest& req, std::function<void(int, const std::string&)> sendResponse) {
+    if (req.method == "POST" && req.path == "/api/login") {
+        try {
+            handleLogInRequest(req.body, sendResponse);
+        } catch (const std::exception& e) {
+            sendResponse(400, std::string("{\"success\": false, \"message\": \"JSON parse error: ") + e.what() + "\"}");
+        }
+    } else if (req.method == "POST" && req.path == "/api/register") {
+        try {
+            handleSignUpRequest(req.body, sendResponse);
+        } catch (const std::exception& e) {
+            sendResponse(400, std::string("{\"success\": false, \"message\": \"JSON parse error: ") + e.what() + "\"}");
+        }
+    } else if (req.method == "POST" && req.path == "/api/logout") {
+        if (req.token.empty()) {
+            sendResponse(401, R"({"success": false, "message": "缺少或无效token"})");
+            return;
+        }
+        handleLogOutRequest(req.token, sendResponse);
+    } else if (req.method == "POST" && req.path == "/api/business") {
+        if (req.token.empty()) {
+            sendResponse(401, R"({"success": false, "message": "缺少或无效token"})");
+            return;
+        }
+        handleBusinessRequest(req.token, sendResponse);
+    } else {
+        sendResponse(404, "{\"success\": false, \"message\": \"Not Found\"}");
+    }
+}
+
 // 线程执行函数
 void handle_client(int client_fd)
 {
@@ -81,12 +113,10 @@ void handle_client(int client_fd)
         return;
     }
     LOG_DEBUG("Received HTTP request: %s %s", req.method.c_str(), req.path.c_str());
-    // 可以调试输出 token
     if (!req.token.empty()) {
         LOG_DEBUG("Token: %s", req.token.c_str());
     }
 
-    // 构造回调，捕获client_fd
     auto sendResponse = [client_fd](int statusCode, const std::string& body) {
         const char* statusText = (statusCode == 200 ? "OK" : (statusCode == 400 ? "Bad Request" : (statusCode == 401 ? "Unauthorized" : "Error")));
         std::string resp =
@@ -100,35 +130,9 @@ void handle_client(int client_fd)
         ::close(client_fd);
     };
 
-    // 简单路由示例：处理登录
-    if (req.method == "POST" && req.path == "/api/login") {
-        try {
-            handleLogInRequest(req.body, sendResponse);
-            return; // sendResponse 已关闭连接
-        } catch (const std::exception& e) {
-            sendResponse(400, std::string("{\"success\": false, \"message\": \"JSON parse error: ") + e.what() + "\"}");
-            return;
-        }
-    } else if (req.method == "POST" && req.path == "/api/register") {
-        try {
-            handleSignUpRequest(req.body, sendResponse);
-            return; // sendResponse 已关闭连接
-        } catch (const std::exception& e) {
-            sendResponse(400, std::string("{\"success\": false, \"message\": \"JSON parse error: ") + e.what() + "\"}");
-            return;
-        }
-    } else if (req.method == "POST" && req.path == "/api/logout") {
-        if (req.token.empty()) {
-            sendResponse(401, R"({"success": false, "message": "缺少或无效token"})");
-            return;
-        }
-        handleLogOutRequest(req.token, sendResponse);
-        return;
-    }
-
-    // 其他未匹配路由，返回404
-    sendResponse(404, "{\"success\": false, \"message\": \"Not Found\"}");
+    dispatch_request(req, sendResponse);
 }
+
 // 主要运行函数
 int ProcWebConnect(int port)
 {
