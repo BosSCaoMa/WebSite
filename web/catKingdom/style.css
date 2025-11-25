@@ -1,0 +1,102 @@
+/* --- 保留原有的基础样式 (Body, Header等) --- */
+:root {
+    --bg-color: #fdf6e3;
+    --panel-bg: #fff;
+    --primary-color: #2aa198;
+    --accent-color: #cb4b16;
+    --text-color: #657b83;
+    --border-radius: 8px;
+    --dungeon-bg: #002b36; /* 副本深色背景 */
+    --dungeon-panel: #073642;
+    --dungeon-text: #839496;
+}
+body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-color); margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* Header & Nav (通用) */
+header { background: #eee8d5; display: flex; justify-content: space-between; padding: 10px 20px; border-bottom: 2px solid #ccc; }
+.nav-tabs { display: flex; gap: 10px; }
+.nav-btn { border: none; background: none; font-size: 1.1em; cursor: pointer; padding: 5px 15px; border-radius: 4px; color: #999; font-weight: bold; }
+.nav-btn.active { background: #fff; color: var(--primary-color); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.nav-btn.dungeon-theme.active { background: var(--dungeon-bg); color: #2aa198; }
+.settings-group button { margin-left: 5px; cursor: pointer; }
+.danger-btn { color: red; }
+
+/* 视图切换 */
+main { flex: 1; padding: 20px; overflow: hidden; position: relative; }
+.game-view { width: 100%; height: 100%; display: none; }
+.active-view { display: block; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* === 村庄样式 (简略) === */
+.game-grid { display: grid; grid-template-columns: 260px 1fr 280px; gap: 20px; height: 100%; }
+.panel { background: var(--panel-bg); padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-y: auto; display: flex; flex-direction: column; }
+.resource-item { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding: 8px 0; }
+.action-btn { background: var(--primary-color); color: #fff; border: none; padding: 12px; width: 100%; border-radius: 6px; cursor: pointer; margin-bottom: 8px; display: flex; justify-content: space-between; }
+.wood-btn { background: #b58900; }
+.building-item { border: 1px solid #eee; padding: 10px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+.buy-btn { background: #fff; border: 1px solid var(--accent-color); color: var(--accent-color); cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+.buy-btn:disabled { border-color: #ccc; color: #ccc; }
+#log-list, #combat-log { list-style: none; padding: 0; margin: 0; font-size: 0.9em; }
+#log-list li { padding: 4px 0; border-bottom: 1px solid #f0f0f0; }
+
+/* === 副本界面样式 (新) === */
+#view-dungeon { background: #000; position: absolute; top:0; left:0; width: 100%; height: 100%; padding: 20px; box-sizing: border-box; }
+
+.dungeon-layout {
+    display: grid;
+    grid-template-columns: 250px 1fr 250px;
+    gap: 20px;
+    height: 100%;
+    background: var(--dungeon-bg);
+    border-radius: 10px;
+    padding: 20px;
+    color: var(--dungeon-text);
+    box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+}
+
+.dungeon-panel {
+    background: var(--dungeon-panel);
+    border: 1px solid #004d5a;
+    padding: 15px;
+    border-radius: 6px;
+    overflow-y: auto;
+}
+
+.dungeon-panel h2 { color: #2aa198; border-bottom: 1px solid #004d5a; margin-top: 0; }
+
+/* 英雄卡片 */
+.hero-card { text-align: center; margin-bottom: 20px; }
+.avatar { font-size: 3em; margin-bottom: 10px; }
+.stats h3 { color: #fff; margin: 5px 0; }
+
+/* 血条 */
+.hp-bar-container { background: #000; height: 15px; border-radius: 10px; overflow: hidden; position: relative; margin: 10px 0; border: 1px solid #555; }
+.hp-bar { background: #dc322f; height: 100%; transition: width 0.2s; }
+.hp-text { position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 10px; color: #fff; line-height: 15px; text-shadow: 1px 1px 1px #000; }
+.enemy-hp .hp-bar { background: #d33682; }
+
+/* 战斗舞台 */
+.dungeon-stage { display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+.scene-icon { font-size: 5em; margin-bottom: 20px; opacity: 0.7; animation: float 3s infinite ease-in-out; }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+.explore-btn { background: #2aa198; color: #fff; border: none; padding: 15px 40px; font-size: 1.2em; border-radius: 30px; cursor: pointer; transition: transform 0.1s; box-shadow: 0 4px 0 #1d746f; }
+.explore-btn:active { transform: translateY(4px); box-shadow: none; }
+
+/* 战斗状态 */
+.hidden { display: none !important; }
+.enemy-display { text-align: center; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+@keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.enemy-avatar { font-size: 6em; filter: drop-shadow(0 0 10px red); }
+#enemy-name { color: #dc322f; font-size: 1.5em; margin: 10px 0; }
+
+.combat-actions { display: flex; gap: 20px; margin-top: 30px; }
+.attack-btn { background: #dc322f; color: white; border: none; padding: 15px 30px; font-size: 1.2em; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 0 #a01d1a; }
+.attack-btn:active { transform: translateY(4px); box-shadow: none; }
+.flee-btn { background: #839496; color: #fff; border: none; padding: 15px 20px; border-radius: 8px; cursor: pointer; }
+
+/* 战斗日志 */
+#combat-log li { border-bottom: 1px solid #004d5a; padding: 5px 0; color: #93a1a1; font-family: monospace; }
+#combat-log li.dmg-in { color: #dc322f; }
+#combat-log li.dmg-out { color: #859900; }
+#combat-log li.loot { color: #b58900; font-weight: bold; }

@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>主控制台</title>
     <style>
-        /* --- 全局样式 (无变化) --- */
         :root {
             --primary-color: #3a7bd5;
             --secondary-color: #3a6073;
@@ -25,56 +24,228 @@
         }
         .dashboard-container { display: flex; min-height: 100vh; }
 
-        /* --- 侧边栏 (无变化) --- */
-        .sidebar { width: 240px; background-color: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; transition: width 0.3s ease; }
-        .sidebar-header { padding: 20px; text-align: center; font-size: 1.5em; font-weight: bold; border-bottom: 1px solid var(--sidebar-hover); }
+        /* 侧边栏 */
+        .sidebar {
+            width: 240px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+        }
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            border-bottom: 1px solid var(--sidebar-hover);
+        }
         .sidebar-nav ul { list-style: none; padding: 0; margin: 20px 0; }
-        .sidebar-nav li a { display: block; padding: 15px 20px; color: var(--sidebar-text); text-decoration: none; transition: background-color 0.2s; font-size: 1.1em; cursor: pointer; /* 将光标改为手型 */ }
-        .sidebar-nav li a:hover, .sidebar-nav li a.active { background-color: var(--sidebar-hover); }
-        .sidebar-footer { margin-top: auto; padding: 20px; text-align: center; }
-        #logout-button { width: 100%; padding: 10px; border: none; border-radius: 5px; background-color: var(--primary-color); color: var(--white-color); cursor: pointer; font-size: 1em; }
+        .sidebar-nav li a {
+            display: block;
+            padding: 15px 20px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            transition: background-color 0.2s;
+            font-size: 1.1em;
+            cursor: pointer;
+        }
+        .sidebar-nav li a:hover,
+        .sidebar-nav li a.active {
+            background-color: var(--sidebar-hover);
+        }
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 20px;
+            text-align: center;
+        }
+        #logout-button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            cursor: pointer;
+            font-size: 1em;
+        }
         #logout-button:hover { opacity: 0.9; }
-        #game-entry-button { width: 100%; margin-top: 10px; padding: 10px; border: none; border-radius: 5px; background-color: #ff9800; color: #fff; cursor: pointer; font-size: 1em; }
 
-        /* --- 主内容区 (无变化) --- */
+        /* 主内容区 */
         .main-content { flex-grow: 1; padding: 30px; }
-        .header { font-size: 2.5em; font-weight: 300; margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; }
-        .content-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .card { background-color: var(--white-color); padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); transition: transform 0.2s, box-shadow 0.2s; }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); }
+        .header {
+            font-size: 2.5em;
+            font-weight: 300;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background-color: var(--white-color);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
         .card h3 { margin-top: 0; color: var(--secondary-color); }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 18px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn span.icon {
+            margin-right: 6px;
+            font-size: 1.1rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3a7bd5, #3a6073);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(58, 123, 213, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(58, 123, 213, 0.35);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(58, 123, 213, 0.2);
+        }
 
-        /* --- 【新增CSS】用于控制页面内容的显示与隐藏 --- */
-        .page-content {
-            display: none; /* 默认隐藏所有页面内容 */
+        /* 游戏入口卡片：在原有 card 基础上稍微强化一点 */
+        .card-game {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: linear-gradient(135deg, #d9e6ff, #f3f8ff);
         }
-        .page-content.active {
-            display: block; /* 只显示带有 active 类的页面内容 */
+
+        .card-game-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
         }
-        
-        /* 移动端适配 (无变化) */
+        .card-game-title span.icon {
+            font-size: 1.4rem;
+        }
+        .card-game p {
+            margin-top: 4px;
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+            color: #555;
+        }
+        /* 页面切换控制 */
+        .page-content { display: none; }
+        .page-content.active { display: block; }
+
+        /* 【新增】游戏入口区域样式（在 main 中展示按钮） */
+        .game-entry-section {
+            margin: 10px 0 30px;
+            display: flex;
+            justify-content: center;
+        }
+        .game-entry-card {
+            position: relative;
+            overflow: hidden;
+            padding: 24px 32px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #ffb347, #ffcc33);
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(16, 19, 204, 0.15);
+            max-width: 680px;
+            width: 100%;
+        }
+        .game-entry-card::before {
+            content: '';
+            position: absolute;
+            right: -60px;
+            top: -60px;
+            width: 160px;
+            height: 160px;
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 50%;
+            filter: blur(2px);
+        }
+        .game-entry-title {
+            font-size: 1.6rem;
+            margin: 0 0 6px;
+            font-weight: 600;
+        }
+        .game-entry-subtitle {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            margin: 0 0 16px;
+        }
+        #game-entry-button {
+            margin-top: 4px;
+            padding: 10px 26px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            background: rgba(255, 255, 255, 0.18);
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.98rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(4px);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+        #game-entry-button span {
+            font-size: 1.2rem;
+        }
+        #game-entry-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+        #game-entry-button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        /* 移动端适配 */
         @media (max-width: 768px) {
             .dashboard-container { flex-direction: column; }
             .sidebar { width: 100%; height: auto; }
             .main-content { padding: 20px; }
+            .game-entry-card {
+                padding: 18px 20px;
+                border-radius: 14px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- 路由守卫脚本 (无变化) -->
+    <!-- 路由守卫 -->
     <script>
         (function() {
             const token = localStorage.getItem('authToken');
             const isAdmin = localStorage.getItem('isAdmin') === 'true';
             
             if (!token) {
-                // 确保这里的 'login.html' 或 'index.html' 是你正确的登录页文件名
                 window.location.replace('index.html');
             } else {
                 document.body.style.visibility = 'visible';
                 
-                // 如果是管理员，显示管理员入口
                 if (isAdmin) {
                     const adminPortal = document.getElementById('admin-portal');
                     if (adminPortal) {
@@ -91,39 +262,114 @@
             <div class="sidebar-header">
                 控制台
             </div>
-            <!-- 【HTML修改】为导航链接添加 data-page 属性 -->
             <nav class="sidebar-nav">
                 <ul>
                     <li><a data-page="dashboard" class="active">仪表盘</a></li>
                     <li><a data-page="users">用户管理</a></li>
                     <li><a data-page="products">产品中心</a></li>
                     <li><a data-page="settings">系统设置</a></li>
-                    <li id="admin-portal" style="display: none;"><a href="admin.html" style="color: #ffd700; font-weight: bold;">👑 管理员控制台</a></li>
+                    <li id="admin-portal" style="display: none;">
+                        <a href="admin.html" style="color: #ffd700; font-weight: bold;">👑 管理员控制台</a>
+                    </li>
                 </ul>
             </nav>
             <div class="sidebar-footer">
                 <button id="logout-button">安全退出</button>
-                <button id="game-entry-button" style="width:100%;margin-top:10px;padding:10px;border:none;border-radius:5px;background-color:#ff9800;color:#fff;cursor:pointer;font-size:1em;">进入游戏</button>
             </div>
         </aside>
 
         <!-- 主内容区 -->
         <main class="main-content">
-            <!-- 【HTML修改】将不同的页面内容包裹在带有 id 和 class 的 div 中 -->
-
             <!-- 仪表盘页面 -->
             <div id="dashboard-page" class="page-content active">
                 <h1 class="header">仪表盘</h1>
-                <p style="margin-bottom: 30px;">在这里概览你的所有核心数据。</p>
+                <p style="margin-bottom: 24px;">在这里概览你的所有核心数据与快捷入口。</p>
+
                 <div class="content-grid">
+                    <!-- 游戏入口卡片 -->
+                    <div class="card card-game">
+                        <div>
+                            <div class="card-game-title">
+                                <span class="icon">🎮</span>
+                                <h3 style="margin: 0;">猫王国 · 游戏入口</h3>
+                            </div>
+                            <p>轻松切换到猫咪王国，随时开始一局放松一下。</p>
+                        </div>
+                        <div>
+                            <button id="game-entry-button" class="btn btn-primary">
+                                <span class="icon">▶</span>
+                                进入游戏
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card card-game">
+                        <div>
+                            <div class="card-game-title">
+                                <span class="icon">🎪</span>
+                                <h3 style="margin: 0;">活动大厅（预留）</h3>
+                            </div>
+                            <p>未来放置活动、节日玩法或运营专题入口。</p>
+                        </div>
+                        <div>
+                            <button id="entry-event" class="btn btn-primary">
+                                <span class="icon">▶</span> 暂未开放
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card card-game">
+                        <div>
+                            <div class="card-game-title">
+                                <span class="icon">💬</span>
+                                <h3 style="margin: 0;">玩家社区（预留）</h3>
+                            </div>
+                            <p>放置论坛、留言板、玩家动态等功能。</p>
+                        </div>
+                        <div>
+                            <button id="entry-community" class="btn btn-primary">
+                                <span class="icon">▶</span> 暂未开放
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card card-game">
+                        <div>
+                            <div class="card-game-title">
+                                <span class="icon">🏆</span>
+                                <h3 style="margin: 0;">排行榜（预留）</h3>
+                            </div>
+                            <p>未来可显示等级榜、财富榜、战力榜等数据。</p>
+                        </div>
+                        <div>
+                            <button id="entry-ranking" class="btn btn-primary">
+                                <span class="icon">▶</span> 暂未开放
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card card-game">
+                        <div>
+                            <div class="card-game-title">
+                                <span class="icon">🛒</span>
+                                <h3 style="margin: 0;">商城系统（预留）</h3>
+                            </div>
+                            <p>预留给游戏商城、道具购买、兑换系统。</p>
+                        </div>
+                        <div>
+                            <button id="entry-shop" class="btn btn-primary">
+                                <span class="icon">▶</span> 暂未开放
+                            </button>
+                        </div>
+                    </div>
+
+
                     <div class="card">
                         <h3>数据概览</h3>
                         <p>查看今日访问量、销售额等核心数据指标。</p>
                     </div>
+
                     <div class="card">
                         <h3>快速操作</h3>
                         <p>发布新文章、上传新产品或处理待办事项。</p>
                     </div>
+
                     <div class="card">
                         <h3>近期活动</h3>
                         <p>查看最近的用户动态和系统通知。</p>
@@ -135,7 +381,6 @@
             <div id="users-page" class="page-content">
                 <h1 class="header">用户管理</h1>
                 <p>这里是用户管理的内容区域。你可以在这里添加用户列表、搜索框等组件。</p>
-                <!-- 未来可以填充用户表格等 -->
             </div>
 
             <!-- 产品中心页面 -->
@@ -152,23 +397,19 @@
         </main>
     </div>
 
-    <!-- 【JavaScript修改】在原有的登出逻辑上，增加页面切换逻辑 -->
     <script>
-        // --- 页面切换逻辑 ---
-        const navLinks = document.querySelectorAll('.sidebar-nav a');
+        // 页面切换逻辑
+        const navLinks = document.querySelectorAll('.sidebar-nav a[data-page]');
         const pageContents = document.querySelectorAll('.page-content');
 
         navLinks.forEach(link => {
             link.addEventListener('click', (event) => {
-                event.preventDefault(); // 阻止 a 标签的默认跳转行为
-
+                event.preventDefault();
                 const targetPageId = link.getAttribute('data-page');
 
-                // 1. 更新导航链接的激活状态
                 navLinks.forEach(navLink => navLink.classList.remove('active'));
                 link.classList.add('active');
 
-                // 2. 切换主内容的显示
                 pageContents.forEach(content => {
                     if (content.id === `${targetPageId}-page`) {
                         content.classList.add('active');
@@ -179,23 +420,35 @@
             });
         });
 
-        // --- 游戏入口跳转 ---
+        // 游戏入口跳转（按钮位置虽然换了，但 ID 不变，逻辑复用）
         document.getElementById('game-entry-button').onclick = function() {
             window.location.href = 'catKingdom/game.html';
         };
+        document.getElementById('entry-event').onclick = function () {
+            alert('活动大厅暂未开放');
+        };
 
-        // --- 登出逻辑 (无变化) ---
+        document.getElementById('entry-community').onclick = function () {
+            alert('玩家社区暂未开放');
+        };
+
+        document.getElementById('entry-ranking').onclick = function () {
+            alert('排行榜暂未开放');
+        };
+
+        document.getElementById('entry-shop').onclick = function () {
+            alert('商城暂未开放');
+        };
+        // 登出逻辑
         const logoutButton = document.getElementById('logout-button');
-        
         logoutButton.addEventListener('click', () => {
             const token = localStorage.getItem('authToken');
             localStorage.removeItem('authToken');
             localStorage.removeItem('isAdmin');
             localStorage.removeItem('userRole');
             
-            // (可选) 通知后端 token 已失效
             if(token) {
-                 fetch('/api/logout', {
+                fetch('/api/logout', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -205,9 +458,6 @@
                     console.error('登出请求失败:', err);
                 });
             }
-            
-            // 重定向到登录页面
-            // 确保这里的 'login.html' 或 'index.html' 是你正确的登录页文件名
             window.location.replace('index.html');
         });
     </script>
