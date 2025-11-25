@@ -3,90 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>猫国建设者 - 重制版</title>
-    <!-- 引入样式表 -->
-    <link rel="stylesheet" href="game.css">
+    <title>猫国建设者 - 远征版</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header>
     <div class="header-left">
-        <h1>🐱 猫国建设者 <span class="badge">Lite</span></h1>
+        <h1>🐱 猫国 <span class="badge">RPG</span></h1>
     </div>
-    
-    <!-- 导航标签栏 -->
     <nav class="nav-tabs">
-        <button id="tab-village" class="nav-btn active" onclick="Game.switchView('village')">🏡 村庄管理</button>
-        <button id="tab-dungeon" class="nav-btn dungeon-theme" onclick="Game.switchView('dungeon')">⚔️ 远征副本</button>
+        <button id="tab-village" class="nav-btn active" onclick="Game.switchView('village')">🏡 村庄</button>
+        <button id="tab-dungeon" class="nav-btn dungeon-theme" onclick="Game.switchView('dungeon')">⚔️ 黑暗森林</button>
     </nav>
-
     <div class="header-right">
-        <span id="calendar" class="season-badge">第 1 年 - 春季</span>
+        <span id="calendar" class="season-badge">加载中...</span>
         <div class="settings-group">
             <button onclick="Game.saveGame()">保存</button>
-            <button onclick="Game.exportSave()">导出</button>
-            <button onclick="Game.importSave()">导入</button>
             <button class="danger-btn" onclick="Game.resetGame()">重置</button>
         </div>
     </div>
 </header>
 
 <main>
-    <!-- 视图 1: 村庄 (原游戏内容) -->
+    <!-- 视图 1: 村庄 -->
     <div id="view-village" class="game-view active-view">
         <div class="game-grid">
-            <!-- 左侧：资源面板 -->
             <div class="panel">
                 <h2>资源库存</h2>
-                <div id="resources-list">
-                    <!-- JS生成 -->
-                </div>
-                
+                <div id="resources-list"></div>
                 <div class="action-section">
                     <button class="action-btn" onclick="Game.clickGather()">
-                        <span>🌿 采集猫薄荷</span>
-                        <span class="btn-sub">+1</span>
+                        <span>🌿 采集猫薄荷</span><span class="btn-sub">+1</span>
                     </button>
                     <button class="action-btn wood-btn" onclick="Game.refineWood()">
-                        <span>🪵 精炼木材</span>
-                        <span class="btn-sub">-100 猫薄荷</span>
+                        <span>🪵 精炼木材</span><span class="btn-sub">-100 猫薄荷</span>
                     </button>
                 </div>
             </div>
-
-            <!-- 中间：村庄建设 -->
             <div class="panel">
                 <h2>基础设施</h2>
-                <div id="buildings-list">
-                    <!-- JS生成 -->
-                </div>
+                <div id="buildings-list"></div>
             </div>
-
-            <!-- 右侧：日志 -->
             <div class="panel log-panel">
-                <h2>世界动态</h2>
-                <ul id="log-list">
-                    <li>欢迎来到猫国！点击“采集猫薄荷”开始。</li>
-                </ul>
+                <h2>村庄日志</h2>
+                <ul id="log-list"></ul>
             </div>
         </div>
     </div>
 
-    <!-- 视图 2: 副本 (新界面占位) -->
+    <!-- 视图 2: 副本 (战斗界面) -->
     <div id="view-dungeon" class="game-view hidden">
-        <div class="dungeon-container">
-            <div class="dungeon-placeholder">
-                <div class="icon">🐉</div>
-                <h2>未知领域</h2>
-                <p>你的猫咪探险队正在整装待发...</p>
-                <p class="sub-text">（副本功能开发中，敬请期待 DLC）</p>
-                <button class="locked-btn" disabled>进入深渊 (需等级 10)</button>
+        <div class="dungeon-layout">
+            <!-- 探索面板 -->
+            <div class="dungeon-panel left-panel">
+                <h2>队伍状态</h2>
+                <div class="hero-card">
+                    <div class="avatar">🐱</div>
+                    <div class="stats">
+                        <h3>探险队长</h3>
+                        <div class="hp-bar-container">
+                            <div class="hp-bar" id="hero-hp-bar" style="width: 100%;"></div>
+                            <span class="hp-text" id="hero-hp-text">100 / 100</span>
+                        </div>
+                        <p>攻击力: <span id="hero-atk">5</span></p>
+                    </div>
+                </div>
+                <div class="loot-bag">
+                    <h3>背包</h3>
+                    <p>📦 皮毛: <span id="val-furs-dungeon">0</span></p>
+                </div>
+            </div>
+
+            <!-- 战斗主舞台 -->
+            <div class="dungeon-stage">
+                <div id="combat-scene" class="scene-empty">
+                    <!-- 没怪的时候显示 -->
+                    <div id="state-idle">
+                        <div class="scene-icon">🌲</div>
+                        <p>周围很安静...</p>
+                        <button class="explore-btn" onclick="Dungeon.explore()">🔍 探索森林</button>
+                    </div>
+
+                    <!-- 有怪的时候显示 -->
+                    <div id="state-combat" class="hidden">
+                        <div class="enemy-display">
+                            <div class="enemy-avatar" id="enemy-avatar">🐀</div>
+                            <h3 id="enemy-name">巨大的老鼠</h3>
+                            <div class="hp-bar-container enemy-hp">
+                                <div class="hp-bar" id="enemy-hp-bar" style="width: 100%;"></div>
+                            </div>
+                            <p class="enemy-stats">HP: <span id="enemy-hp-text">50</span></p>
+                        </div>
+                        <div class="combat-actions">
+                            <button class="attack-btn" onclick="Dungeon.playerAttack()">⚔️ 攻击</button>
+                            <button class="flee-btn" onclick="Dungeon.flee()">🏃 逃跑</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 战斗日志 -->
+            <div class="dungeon-panel right-panel">
+                <h2>战斗记录</h2>
+                <ul id="combat-log">
+                    <li>你踏入了黑暗森林...</li>
+                </ul>
             </div>
         </div>
     </div>
 </main>
 
-<!-- 引入游戏逻辑 -->
 <script src="game.js"></script>
 </body>
 </html>
