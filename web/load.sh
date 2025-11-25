@@ -5,7 +5,6 @@ set -e
 SRC_DIR="/var/www/html"
 BACKUP_BASE="/var/www/html_backup"
 WEB_SRC="$(dirname "$0")"
-WEB_SRC="$WEB_SRC/web"
 
 # 获取当前时间作为备份文件夹名
 TIME_STR=$(date +"%Y%m%d_%H%M%S")
