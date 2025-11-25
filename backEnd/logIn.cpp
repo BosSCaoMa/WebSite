@@ -4,10 +4,13 @@
 #include "MySQLProc.h"
 #include "LogM.h"
 #include <mutex>
+#include <thread>
+#include <atomic>
 
 using namespace std;
 unordered_map<string, Session> g_sessionStore;
 std::mutex g_sessionMutex; // 新增互斥锁
+static std::atomic<bool> g_sessionAuditRunning{false};
 
 static std::string base64Encode(const std::string &in) {
     static const char *tbl = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -140,4 +143,33 @@ void handleLogOutRequest(const std::string& token, std::function<void(int, const
         g_sessionStore.erase(it);
     }
     sendResponse(200, R"({"success": true, "message": "登出成功"})");
+}
+
+// 会话审计接口
+void sessionAuditLoop(int intervalSeconds) {
+    while (g_sessionAuditRunning) {
+        std::this_thread::sleep_for(std::chrono::seconds(intervalSeconds));
+        auto now = std::chrono::steady_clock::now();
+        LOG_DEBUG("Session audit running at %lld", std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
+        std::lock_guard<std::mutex> lk(g_sessionMutex);
+        for (auto it = g_sessionStore.begin(); it != g_sessionStore.end(); ) {
+            if (now > it->second.expireAt) {
+                LOG_INFO("Session expired, token: %s, email: %s", it->second.token.c_str(), it->second.email.c_str());
+                it = g_sessionStore.erase(it);
+            } else {
+                ++it;
+            }
+        }
+        LOG_DEBUG("Session audit completed at %lld", std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
+    }
+}
+
+void startSessionAuditThread(int intervalSeconds = 60) {
+    if (g_sessionAuditRunning) return;
+    g_sessionAuditRunning = true;
+    std::thread(sessionAuditLoop, intervalSeconds).detach();
+}
+
+void stopSessionAuditThread() {
+    g_sessionAuditRunning = false;
 }

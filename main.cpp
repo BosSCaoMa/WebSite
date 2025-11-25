@@ -21,7 +21,8 @@ int main()
 
     // 初始化数据库连接池
     ConnectionPool::init(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, 10, 2);
-
+    // 待新增功能，自动踢会话下线
+    startSessionAuditThread(60); // 每60秒审计一次会话
     // 监听端口9000，多线程处理请求
     ProcWebConnect(9000);
     return 0;

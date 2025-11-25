@@ -41,4 +41,8 @@ void handleLogInRequest(const std::string& requestBody,
 bool validateToken(const std::string& token, std::string* emailOut = nullptr, UserRole* roleOut = nullptr);
 void handleLogOutRequest(const std::string& token,
                          std::function<void(int, const std::string&)> sendResponse);
+
+// 会话审计接口
+void startSessionAuditThread(int intervalSeconds = 60);
+void stopSessionAuditThread();
 #endif // LOGIN_H
