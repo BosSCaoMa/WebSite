@@ -5,7 +5,8 @@
 # 数据库配置（请根据实际情况修改）
 DB_HOST="localhost"
 DB_USER="web_user"
-DB_PASSWORD=""
+read -sp "请输入数据库密码: " DB_PASSWORD
+echo
 DB_NAME="web_manager"  # 请修改为您现有的数据库名称
 
 # 颜色输出函数
@@ -82,7 +83,7 @@ create_user_table() {
     mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" <<EOF
 CREATE TABLE IF NOT EXISTS sys_user (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL,
+    name VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     role TINYINT DEFAULT 0 COMMENT '用户角色: 0=普通用户, 1=管理员',
@@ -101,28 +102,22 @@ EOF
     fi
 }
 
-# 生成安全的密码哈希
+# 生成安全的 bcrypt 密码哈希（与 C++ 后端一致）
 generate_password_hash() {
     local password="$1"
-    # 使用Python生成bcrypt哈希（如果系统有Python）
+    # 使用 Python 的 bcrypt 库生成 $2b$12$... 哈希
     if command -v python3 > /dev/null; then
-        python3 -c "
-import crypt
-import random
-import string
-
-def generate_salt():
-    chars = string.ascii_letters + string.digits
-    return ''.join(random.choice(chars) for _ in range(16))
-
-salt = generate_salt()
-hash_val = crypt.crypt('$password', '\$6\$' + salt + '\$')
-print(hash_val)
-"
-    else
-        # 备用方案：使用openssl
-        echo "$password" | openssl passwd -6 -stdin
+        hash=$(python3 -c "import bcrypt; print(bcrypt.hashpw(b'$password', bcrypt.gensalt(12)).decode())" 2>/dev/null)
+        if [[ "$hash" == \$2b\$12\$* ]]; then
+            echo "$hash"
+            return 0
+        else
+            echo "" # 失败返回空
+            return 1
+        fi
     fi
+    echo "[ERROR] 需要 Python3 和 bcrypt 库支持。请先安装： pip install bcrypt" >&2
+    return 1
 }
 
 # 创建管理员账户
@@ -150,15 +145,19 @@ create_admin_user() {
     done
     
     # 生成密码哈希
-    print_info "正在生成安全的密码哈希..."
+    print_info "正在生成安全的 bcrypt 密码哈希..."
     password_hash=$(generate_password_hash "$admin_password")
+    if [ -z "$password_hash" ]; then
+        print_error "密码哈希生成失败，请确保已安装 Python3 和 bcrypt 库 (pip install bcrypt)"
+        exit 1
+    fi
     
     # 插入管理员账户
     mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" <<EOF
-INSERT INTO sys_user (username, email, password_hash, role) 
+INSERT INTO sys_user (name, email, password_hash, role) 
 VALUES ('$admin_username', '$admin_email', '$password_hash', 1)
 ON DUPLICATE KEY UPDATE 
-    username = VALUES(username),
+    name = VALUES(name),
     password_hash = VALUES(password_hash),
     role = VALUES(role);
 EOF

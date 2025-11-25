@@ -20,7 +20,7 @@ SignUpResult GetSignUpResult(const UserInfo &userInfo)
         // 使用预处理语句防止SQL注入
         std::unique_ptr<sql::PreparedStatement> pstmt(
             dbAgent->prepareStatement(
-                "INSERT INTO sys_user (username, email, password_hash, role) VALUES (?, ?, ?, ?)"
+                "INSERT INTO sys_user (name, email, password_hash, role) VALUES (?, ?, ?, ?)"
             )
         );
         pstmt->setString(1, userInfo.name);
@@ -53,13 +53,13 @@ UserInfo QueryUserInfoByEmail(const std::string &email)
 
     try {
         std::unique_ptr<sql::PreparedStatement> pstmt(
-            dbAgent->prepareStatement("SELECT username, email, password_hash, role FROM sys_user WHERE email = ?")
+            dbAgent->prepareStatement("SELECT name, email, password_hash, role FROM sys_user WHERE email = ?")
         );
         pstmt->setString(1, email);
 
         std::unique_ptr<sql::ResultSet> resultSet(pstmt->executeQuery());
         if (resultSet->next()) {
-            userInfo.name = resultSet->getString("username");
+            userInfo.name = resultSet->getString("name");
             userInfo.email = resultSet->getString("email");
             userInfo.passwordHash = resultSet->getString("password_hash");
             int roleValue = resultSet->getInt("role");

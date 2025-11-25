@@ -18,14 +18,11 @@ int main()
     cout << "press your mysql password:" << endl;
     getline(cin, DB_PASSWORD);
     cout<< "running" << endl;
-    LOG_INFO("MySQL password set");
 
     // 初始化数据库连接池
     ConnectionPool::init(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, 10, 2);
 
     // 监听端口9000，多线程处理请求
-    while (true) {
-        ProcWebConnect(9000); // 若内部永久循环，此处可去掉 while(true)
-    }
+    ProcWebConnect(9000);
     return 0;
 }
