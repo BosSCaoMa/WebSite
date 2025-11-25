@@ -34,6 +34,7 @@
         .sidebar-footer { margin-top: auto; padding: 20px; text-align: center; }
         #logout-button { width: 100%; padding: 10px; border: none; border-radius: 5px; background-color: var(--primary-color); color: var(--white-color); cursor: pointer; font-size: 1em; }
         #logout-button:hover { opacity: 0.9; }
+        #game-entry-button { width: 100%; margin-top: 10px; padding: 10px; border: none; border-radius: 5px; background-color: #ff9800; color: #fff; cursor: pointer; font-size: 1em; }
 
         /* --- 主内容区 (无变化) --- */
         .main-content { flex-grow: 1; padding: 30px; }
@@ -102,6 +103,7 @@
             </nav>
             <div class="sidebar-footer">
                 <button id="logout-button">安全退出</button>
+                <button id="game-entry-button" style="width:100%;margin-top:10px;padding:10px;border:none;border-radius:5px;background-color:#ff9800;color:#fff;cursor:pointer;font-size:1em;">进入游戏</button>
             </div>
         </aside>
 
@@ -177,6 +179,10 @@
             });
         });
 
+        // --- 游戏入口跳转 ---
+        document.getElementById('game-entry-button').onclick = function() {
+            window.location.href = 'catKingdom/game.html';
+        };
 
         // --- 登出逻辑 (无变化) ---
         const logoutButton = document.getElementById('logout-button');
