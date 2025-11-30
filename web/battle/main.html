@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>灵境冒险 - 网页 RPG Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- 可选：好看一点的字体 -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="bg-gradient"></div>
+
+  <header class="top-bar">
+    <div class="logo">
+      <span class="logo-mark">灵</span>
+      <span class="logo-text">灵境冒险</span>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" data-page="home">首页</button>
+      <button class="nav-btn" data-page="lineup">阵容</button>
+      <button class="nav-btn" data-page="dungeon">副本</button>
+      <button class="nav-btn" data-page="inventory">背包&商场</button>
+      <button class="nav-btn" data-page="events">活动</button>
+    </nav>
+  </header>
+
+  <main class="main-layout">
+    <!-- 左侧角色信息简略栏 -->
+    <aside class="sidebar-card">
+      <div class="avatar-circle">
+        <div class="avatar-inner">主</div>
+      </div>
+      <div class="sidebar-info">
+        <h2 id="player-name">星野·主角</h2>
+        <p>等级：<span id="side-level"></span></p>
+        <p>战斗力：<span id="side-power"></span></p>
+        <p>银币：<span id="side-silver"></span></p>
+        <p>黄金：<span id="side-gold"></span></p>
+      </div>
+      <div class="sidebar-bars">
+        <div class="bar-label">
+          <span>生命</span><span id="side-hp-text"></span>
+        </div>
+        <div class="bar">
+          <div id="side-hp-bar" class="bar-fill"></div>
+        </div>
+        <div class="bar-label">
+          <span>精力</span><span id="side-energy-text"></span>
+        </div>
+        <div class="bar">
+          <div id="side-energy-bar" class="bar-fill energy"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 右侧主内容 -->
+    <section class="content">
+
+      <!-- 首页 -->
+      <section id="home" class="page active">
+        <div class="card">
+          <h1>冒险者档案</h1>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="label">等级</span>
+              <span id="stat-level" class="value"></span>
+            </div>
+            <div class="stat-card">
+              <span class="label">战斗力</span>
+              <span id="stat-power" class="value"></span>
+            </div>
+            <div class="stat-card">
+              <span class="label">银币</span>
+              <span id="stat-silver" class="value"></span>
+            </div>
+            <div class="stat-card">
+              <span class="label">黄金</span>
+              <span id="stat-gold" class="value"></span>
+            </div>
+          </div>
+
+          <div class="bars-wrapper">
+            <div class="bar-label">
+              <span>生命值</span><span id="stat-hp-text"></span>
+            </div>
+            <div class="bar big">
+              <div id="hp-bar" class="bar-fill"></div>
+            </div>
+            <div class="bar-label">
+              <span>精力值</span><span id="stat-energy-text"></span>
+            </div>
+            <div class="bar big">
+              <div id="energy-bar" class="bar-fill energy"></div>
+            </div>
+          </div>
+
+          <div class="home-actions">
+            <button id="go-dungeon-btn" class="primary-btn">前往副本</button>
+            <button id="go-events-btn" class="secondary-btn">活动中心</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>世界概览</h2>
+          <p>在这片灵境大陆，你可以培养阵容、挑战副本、收集装备、参加限时活动，逐步提升自己的战斗力。</p>
+          <ul class="home-features">
+            <li>🧭 阵容：主角、副将、坐骑，搭配装备与技能。</li>
+            <li>⚔️ 副本：大世界探索 + 关卡回合制战斗。</li>
+            <li>🎒 背包与商场：装备管理、买卖物资。</li>
+            <li>🎉 活动：限时任务与丰厚奖励。</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 阵容页面 -->
+      <section id="lineup" class="page">
+        <div class="card">
+          <h1>阵容配置</h1>
+          <div class="lineup-layout">
+            <div class="lineup-main">
+              <h2>主角</h2>
+              <p>姓名：<span id="main-hero-name"></span></p>
+              <p>等级：<span id="main-hero-level"></span></p>
+              <p>基础战力：<span id="main-hero-base-power"></span></p>
+              <p>总战力（含装备）：<span id="main-hero-total-power"></span></p>
+
+              <div class="equip-row">
+                <div>
+                  <span class="label small">武器：</span>
+                  <span id="main-hero-weapon" class="equip-value">未装备</span>
+                </div>
+                <div class="equip-actions">
+                  <select id="weapon-select"></select>
+                  <button id="equip-weapon-btn" class="mini-btn">装备</button>
+                </div>
+              </div>
+
+              <div class="equip-row">
+                <div>
+                  <span class="label small">护甲：</span>
+                  <span id="main-hero-armor" class="equip-value">未装备</span>
+                </div>
+                <div class="equip-actions">
+                  <select id="armor-select"></select>
+                  <button id="equip-armor-btn" class="mini-btn">装备</button>
+                </div>
+              </div>
+
+              <div class="equip-row">
+                <div>
+                  <span class="label small">坐骑：</span>
+                  <span id="main-hero-mount" class="equip-value">未装备</span>
+                </div>
+                <div class="equip-actions">
+                  <select id="mount-select"></select>
+                  <button id="equip-mount-btn" class="mini-btn">骑乘</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="lineup-side">
+              <h2>副将 & 技能</h2>
+              <ul class="ally-list" id="ally-list"></ul>
+
+              <div class="skills-block">
+                <h3>已学技能</h3>
+                <ul id="skill-list" class="tag-list"></ul>
+
+                <div class="skill-learn">
+                  <select id="skill-select"></select>
+                  <button id="learn-skill-btn" class="primary-btn small">学习技能</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 副本页面 -->
+      <section id="dungeon" class="page">
+        <div class="card">
+          <h1>副本挑战</h1>
+          <div class="dungeon-layout">
+            <div class="dungeon-world">
+              <h2>大世界</h2>
+              <p>当前地图：<span id="world-name"></span></p>
+              <p>关卡：<span id="stage-name"></span></p>
+              <p>推荐战力：<span id="stage-power"></span></p>
+              <div class="dungeon-controls">
+                <button id="prev-stage-btn" class="mini-btn">上一关</button>
+                <button id="next-stage-btn" class="mini-btn">下一关</button>
+              </div>
+              <button id="fight-btn" class="primary-btn wide">开始战斗（回合制）</button>
+            </div>
+
+            <div class="dungeon-log">
+              <h2>战斗记录</h2>
+              <div id="battle-log" class="log-box"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 背包与商场 -->
+      <section id="inventory" class="page">
+        <div class="card">
+          <h1>背包 & 商场</h1>
+          <div class="inventory-layout">
+            <div class="inventory-column">
+              <h2>背包</h2>
+              <ul id="inventory-list" class="item-list"></ul>
+            </div>
+            <div class="inventory-column">
+              <h2>商场</h2>
+              <ul id="shop-list" class="item-list"></ul>
+            </div>
+          </div>
+          <p class="hint">提示：购买消耗黄金，出售获得银币。只是示例逻辑，你可以接入真实数据与数值公式。</p>
+        </div>
+      </section>
+
+      <!-- 活动页面 -->
+      <section id="events" class="page">
+        <div class="card">
+          <h1>活动中心</h1>
+          <ul id="event-list" class="event-list"></ul>
+        </div>
+      </section>
+
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -3,6 +3,7 @@
 #include "LogM.h"
 #include "MySQLProc.h"
 #include "ConnectProc.h"
+#include "logIn.h"
 using namespace std;
 
 
