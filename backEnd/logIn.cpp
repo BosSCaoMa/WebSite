@@ -150,7 +150,6 @@ void sessionAuditLoop(int intervalSeconds) {
     while (g_sessionAuditRunning) {
         std::this_thread::sleep_for(std::chrono::seconds(intervalSeconds));
         auto now = std::chrono::steady_clock::now();
-        LOG_DEBUG("Session audit running at %lld", std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
         std::lock_guard<std::mutex> lk(g_sessionMutex);
         for (auto it = g_sessionStore.begin(); it != g_sessionStore.end(); ) {
             if (now > it->second.expireAt) {
@@ -160,11 +159,10 @@ void sessionAuditLoop(int intervalSeconds) {
                 ++it;
             }
         }
-        LOG_DEBUG("Session audit completed at %lld", std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
     }
 }
 
-void startSessionAuditThread(int intervalSeconds = 60) {
+void startSessionAuditThread(int intervalSeconds) {
     if (g_sessionAuditRunning) return;
     g_sessionAuditRunning = true;
     std::thread(sessionAuditLoop, intervalSeconds).detach();
