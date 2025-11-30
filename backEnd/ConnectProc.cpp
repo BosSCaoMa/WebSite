@@ -63,6 +63,36 @@ bool parse_http_request(const std::string& raw, HttpRequest& req)
     return true;
 }
 
+// 解析 URL-encoded 表单数据
+std::unordered_map<std::string, std::string> parse_url_encoded(const std::string& data) {
+    std::unordered_map<std::string, std::string> result;
+    std::string trimmed = trim(data);
+    
+    if (trimmed.empty()) return result;
+    
+    size_t pos = 0;
+    while (pos < trimmed.size()) {
+        size_t amp_pos = trimmed.find('&', pos);
+        if (amp_pos == std::string::npos) amp_pos = trimmed.size();
+        
+        std::string pair = trimmed.substr(pos, amp_pos - pos);
+        size_t eq_pos = pair.find('=');
+        
+        if (eq_pos != std::string::npos) {
+            std::string key = pair.substr(0, eq_pos);
+            std::string value = pair.substr(eq_pos + 1);
+            
+            // 简单的URL解码（处理%编码）
+            // 这里可以添加更完整的URL解码逻辑
+            result[key] = value;
+        }
+        
+        pos = amp_pos + 1;
+    }
+    
+    return result;
+}
+
 // 路由分发函数
 void dispatch_request(const HttpRequest& req, std::function<void(int, const std::string&)> sendResponse) {
     if (req.method == "POST" && req.path == "/api/login") {
@@ -88,7 +118,7 @@ void dispatch_request(const HttpRequest& req, std::function<void(int, const std:
             sendResponse(401, R"({"success": false, "message": "缺少或无效token"})");
             return;
         }
-        handleBusinessRequest(req.token, sendResponse);
+        handleBusinessRequest(req, sendResponse);
     } else {
         sendResponse(404, "{\"success\": false, \"message\": \"Not Found\"}");
     }

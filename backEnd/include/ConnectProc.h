@@ -29,6 +29,9 @@ static inline std::string trim(const std::string& s) {
 // 解析原始HTTP请求报文，填充HttpRequest结构体。目前假设可以一次性读完
 bool parse_http_request(const std::string& raw, HttpRequest& req);
 
+// 解析 URL-encoded 表单数据
+std::unordered_map<std::string, std::string> parse_url_encoded(const std::string& data);
+
 // 处理单个客户端
 void handle_client(int client_fd);
 // 启动监听端口，返回0成功，非0错误
